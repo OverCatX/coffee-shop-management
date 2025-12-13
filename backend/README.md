@@ -1,6 +1,16 @@
-# Coffee Shop Management Database System
+# Backend - Coffee Shop Management System
 
-A comprehensive database management system for coffee shops built with FastAPI and PostgreSQL
+FastAPI backend demonstrating advanced database techniques.
+
+> 📚 **For complete documentation, see [docs/](../docs/README.md)**
+
+## Quick Links
+
+- [Installation Guide](../docs/setup/installation.md)
+- [Database Setup](../docs/setup/database-setup.md)
+- [Database Schema](../docs/database/schema.md)
+- [API Documentation](../docs/api/overview.md)
+- [Development Guide](../docs/development/backend.md)
 
 ## Features
 

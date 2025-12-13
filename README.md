@@ -1,294 +1,191 @@
 # Coffee Shop Management System
 
-A full-stack coffee shop management system with a FastAPI backend and Next.js frontend, featuring comprehensive database design with normalization, constraints, indexes, and transaction management.
+> **A comprehensive database project** demonstrating advanced database management techniques with complete documentation.
 
-## 🚀 Features
+A full-stack coffee shop management system built with **FastAPI** (backend) and **Next.js** (frontend), featuring extensive database documentation covering **Normalization (3NF)**, **SQL-DDL**, **Constraints**, **Indexes**, **Transactions**, **Query Processing and Optimization**, and **Physical Storage & Index Structures**.
 
-### Backend (FastAPI)
+---
 
-- **Database Design**: Normalization (3NF), SQL DDL with Constraints and Indexes
-- **Transaction Management**: ACID compliance with rollback mechanisms
-- **Query Optimization**: Proper indexing strategy, eager loading, pagination
-- **RESTful API**: Complete CRUD operations for all entities
-- **Database Migrations**: Alembic for version control
-- **Physical Storage**: Optimized data types and index structures
+## 🚀 Quick Start
 
-### Frontend (Next.js)
+### Prerequisites
 
-- Modern React-based UI
-- TypeScript for type safety
-- Server-side rendering capabilities
+- **Python 3.11 or 3.12** (Python 3.13 may have compatibility issues)
+- **PostgreSQL 12+**
+- **Node.js 18+**
+- **npm or yarn**
 
-## 📁 Project Structure
+### Installation
 
-```
-coffee-shop-management/
-├── backend/                 # FastAPI backend
-│   ├── app/
-│   │   ├── api/            # API endpoints
-│   │   ├── core/           # Core configuration
-│   │   ├── models/         # SQLAlchemy models
-│   │   ├── repositories/   # Repository pattern
-│   │   ├── schemas/        # Pydantic schemas
-│   │   └── main.py         # FastAPI application
-│   ├── alembic/            # Database migrations
-│   ├── database/           # SQL scripts
-│   │   ├── schema.sql      # Database schema
-│   │   ├── constraints.sql # Constraints
-│   │   ├── indexes.sql     # Indexes
-│   │   └── seed_data.sql   # Sample data
-│   ├── requirements.txt    # Python dependencies
-│   └── README.md           # Backend documentation
-│
-└── frontend/               # Next.js frontend
-    ├── src/
-    │   └── app/            # Next.js app directory
-    ├── package.json        # Node.js dependencies
-    └── README.md           # Frontend documentation
-```
-
-## 🗄️ Database Schema
-
-The system includes the following entities:
-
-- **Employees**: `employees`, `managers`, `baristas`
-- **Customers**: `customers`
-- **Menu**: `menu_items`, `ingredients`, `menu_item_ingredients`
-- **Inventory**: `inventory`
-- **Orders**: `orders`, `order_details`
-- **Payments**: `payments`
-- **Relationships**: `barista_menu_items` (many-to-many)
-
-## 🛠️ Prerequisites
-
-### Backend
-
-- Python 3.8 or higher
-- PostgreSQL 12 or higher
-- pip (Python package manager)
-
-### Frontend
-
-- Node.js 18 or higher
-- npm or yarn
-
-## 📦 Installation & Setup
-
-### Backend Setup
-
-1. **Navigate to backend directory:**
+**Backend:**
 
 ```bash
 cd backend
-```
-
-2. **Create virtual environment:**
-
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. **Install dependencies:**
-
-```bash
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-```
+createdb coffee_shop_db
 
-4. **Create PostgreSQL database:**
-
-```bash
-psql -U postgres
-CREATE DATABASE coffee_shop_db;
-\q
-```
-
-5. **Configure environment variables:**
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` file with your database credentials:
-
-```env
+# Create .env file (see Configuration below)
+cat > .env << EOF
 DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/coffee_shop_db
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=yourpassword
 DB_NAME=coffee_shop_db
-```
+SECRET_KEY=your-secret-key-change-in-production
+CORS_ORIGINS=http://localhost:3000
+CORS_ALLOW_CREDENTIALS=true
+CORS_ALLOW_METHODS=*
+CORS_ALLOW_HEADERS=*
+EOF
 
-6. **Run database migrations:**
-
-```bash
 alembic upgrade head
-```
-
-7. **(Optional) Load seed data:**
-
-```bash
-psql -U postgres -d coffee_shop_db -f database/seed_data.sql
-```
-
-8. **Start the backend server:**
-
-```bash
+python scripts/seed_mock_data.py
 uvicorn app.main:app --reload
 ```
 
-Backend API will be available at:
-
-- API: http://localhost:8000
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-
-### Frontend Setup
-
-1. **Navigate to frontend directory:**
+**Frontend:**
 
 ```bash
 cd frontend
-```
-
-2. **Install dependencies:**
-
-```bash
 npm install
-# or
-yarn install
-```
-
-3. **Start the development server:**
-
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-Frontend will be available at: http://localhost:3000
-
-## 🚀 Quick Start (Both Services)
-
-### Terminal 1 - Backend:
-
-```bash
-cd backend
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-uvicorn app.main:app --reload
-```
-
-### Terminal 2 - Frontend:
-
-```bash
-cd frontend
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1" > .env.local
 npm run dev
 ```
 
-## 📚 API Documentation
+**Access:**
 
-Once the backend is running, you can access:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+**Demo Credentials:**
 
-### API Endpoints
+- Manager: `john.smith@coffeeshop.com` / `password123`
+- Barista: `sarah.j@coffeeshop.com` / `password123`
+- Cashier: `emma.w@coffeeshop.com` / `password123`
 
-- `/api/v1/employees` - Employee management
-- `/api/v1/customers` - Customer management
-- `/api/v1/menu-items` - Menu item management
-- `/api/v1/orders` - Order management
-- `/api/v1/payments` - Payment processing
-- `/api/v1/inventory` - Inventory management
+> 📚 **For detailed installation guide, see [docs/setup.md](docs/setup.md)**
 
-## 🗃️ Database Design Principles
+---
 
-### Normalization
+## 📚 Database Documentation
 
-- **3NF Compliance**: All tables are normalized to Third Normal Form
-- **Junction Tables**: Many-to-many relationships properly handled
+This project includes **comprehensive database documentation** covering all essential database concepts:
 
-### Constraints
+### 🗄️ Core Database Documentation
 
-- **Primary Keys**: All tables have primary keys
-- **Foreign Keys**: Referential integrity with CASCADE rules
-- **Check Constraints**: Data validation (price > 0, quantity >= 0, etc.)
-- **Unique Constraints**: Email, phone number uniqueness
+| Topic                  | Documentation                                                 | Description                                      |
+| ---------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
+| **Schema**             | [Database Schema](docs/database/schema.md)                    | Complete ERD, table structures, relationships    |
+| **Normalization**      | [Normalization (3NF)](docs/database/normalization.md)         | Database normalization principles and examples   |
+| **Constraints**        | [Constraints & Indexes](docs/database/constraints-indexes.md) | PK, FK, CHECK, UNIQUE constraints                |
+| **Indexes**            | [Constraints & Indexes](docs/database/constraints-indexes.md) | Performance optimization with strategic indexing |
+| **Migrations**         | [Migrations](docs/database/migrations.md)                     | Alembic migration guide and best practices       |
+| **Transactions**       | [Transactions](docs/database/transactions.md)                 | ACID properties and transaction management       |
+| **Query Optimization** | [Query Optimization](docs/database/query-optimization.md)     | Query processing and performance tuning          |
 
-### Indexes
+### 📖 Additional Documentation
 
-- **Primary Key Indexes**: Automatic
-- **Foreign Key Indexes**: For join optimization
-- **Composite Indexes**: For frequently queried columns
-- **Date/Status Indexes**: For filtering and sorting
+- **[📖 Documentation Index](docs/README.md)** - Complete documentation navigation
+- **[🔧 Setup Guide](docs/setup.md)** - Installation and configuration
+- **[🔌 API Documentation](docs/api.md)** - Complete RESTful API reference
+- **[💻 Development Guide](docs/development.md)** - Backend and frontend development
+- **[🚀 Deployment](docs/deployment/production.md)** - Production deployment guide
+- **[🔍 Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
 
-### Transactions
+---
 
-- **ACID Compliance**: All critical operations use transactions
-- **Rollback Mechanisms**: Error handling with transaction rollback
-- **Order Processing**: Atomic order creation with details and payment
+## 🎯 Database Techniques Demonstrated
 
-### Query Optimization
+| Technique               | Status | Documentation                                             |
+| ----------------------- | ------ | --------------------------------------------------------- |
+| **Normalization (3NF)** | ✅     | [Normalization Guide](docs/database/normalization.md)     |
+| **SQL DDL**             | ✅     | [Schema Documentation](docs/database/schema.md)           |
+| **Constraints**         | ✅     | [Constraints Guide](docs/database/constraints-indexes.md) |
+| **Indexes**             | ✅     | [Indexes Guide](docs/database/constraints-indexes.md)     |
+| **Transactions**        | ✅     | [Transactions Guide](docs/database/transactions.md)       |
+| **Query Optimization**  | ✅     | [Optimization Guide](docs/database/query-optimization.md) |
+| **Physical Storage**    | ✅     | [Schema & Optimization](docs/database/)                   |
 
-- **Eager Loading**: Using `joinedload` and `selectinload`
-- **Pagination**: All list endpoints support pagination
-- **Indexed Queries**: Optimized for common query patterns
+---
 
-## 📝 Environment Variables
+## 🛠️ Technology Stack
 
-### Backend (.env)
+**Backend:**
 
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/coffee_shop_db
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=yourpassword
-DB_NAME=coffee_shop_db
-APP_NAME=Coffee Shop Management API
-APP_VERSION=1.0.0
-DEBUG=True
-LOG_LEVEL=INFO
-HOST=0.0.0.0
-PORT=8000
+- FastAPI, SQLAlchemy, PostgreSQL 12+, Alembic
+- JWT authentication with role-based access control
+
+**Frontend:**
+
+- Next.js 16 (App Router), TypeScript, Tailwind CSS
+- SWR, Axios
+
+**Database Features:**
+
+- Normalized schema (3NF)
+- Comprehensive constraints (PK, FK, CHECK, UNIQUE)
+- Strategic indexes for performance
+- Transaction management with ACID properties
+- Query optimization techniques
+
+---
+
+## 📦 Project Structure
+
+```
+coffee-shop-management/
+├── backend/              # FastAPI Backend
+│   ├── app/              # Application code (API, models, repositories)
+│   ├── alembic/          # Database migrations
+│   └── scripts/          # Utility scripts
+├── frontend/             # Next.js Frontend
+│   └── src/              # Source code
+└── docs/                 # 📚 Comprehensive Documentation
+    ├── database/         # 🗄️ Database documentation (CORE - 6 files)
+    ├── setup.md          # Installation & configuration
+    ├── api.md            # API documentation
+    ├── development.md    # Development guides
+    ├── deployment/       # Deployment guides
+    └── troubleshooting.md # Common issues
 ```
 
-## 🔧 Development
+---
 
-### Database Migrations
+## 📖 Quick Links
 
-Create a new migration:
+### Essential Documentation
 
-```bash
-cd backend
-alembic revision --autogenerate -m "Description of changes"
-```
+- **[📖 Documentation Index](docs/README.md)** - Start here for complete navigation
+- **[🗄️ Database Schema](docs/database/schema.md)** - ERD and table structures
+- **[🔧 Installation Guide](docs/setup.md)** - Detailed setup instructions
+- **[🔌 API Reference](docs/api.md)** - Complete API documentation
 
-Apply migrations:
+### Database Learning Resources
 
-```bash
-alembic upgrade head
-```
+- **[🔷 Normalization](docs/database/normalization.md)** - 3NF principles
+- **[🔒 Constraints & Indexes](docs/database/constraints-indexes.md)** - Database constraints
+- **[🔄 Migrations](docs/database/migrations.md)** - Alembic guide
+- **[⚡ Transactions](docs/database/transactions.md)** - ACID properties
+- **[🚀 Query Optimization](docs/database/query-optimization.md)** - Performance tuning
 
-Rollback migration:
+---
 
-```bash
-alembic downgrade -1
-```
+## 🎓 Learning Resources
 
-### Code Formatting
+This project serves as a **comprehensive database learning resource** with:
 
-Backend (using black):
+- ✅ Complete documentation covering all database concepts
+- ✅ Real-world implementation of database techniques
+- ✅ Detailed explanations with examples and best practices
+- ✅ Production-ready code demonstrating proper database design
 
-```bash
-cd backend
-black app/
-```
+**Perfect for:** Database course projects, learning DBMS, understanding relational database design, studying optimization techniques.
+
+---
 
 ## 📄 License
 
-## This project is for educational purposes.
-
-**Note**: Make sure PostgreSQL is running before starting the backend server.
+This project is for educational purposes.

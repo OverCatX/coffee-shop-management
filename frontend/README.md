@@ -1,170 +1,150 @@
-# Coffee Shop Management - Frontend
+# Frontend - Coffee Shop Management System
 
-Modern, performant Next.js frontend for the Coffee Shop Management System.
+Modern Next.js frontend for the Coffee Shop Management System.
+
+> 📚 **For complete documentation, see [docs/](../docs/README.md)**
+
+## Quick Links
+
+- [Installation Guide](../docs/setup/installation.md)
+- [Frontend Development](../docs/development/frontend.md)
+- [API Documentation](../docs/api/overview.md)
+- [Troubleshooting](../docs/troubleshooting.md)
 
 ## 🚀 Features
 
-- **Type-Safe**: Full TypeScript support with strict type checking (no `any` types)
-- **Performance Optimized**: 
-  - Code splitting with dynamic imports
-  - React.memo for component memoization
-  - useMemo and useCallback for expensive computations
-  - SWR for efficient data fetching and caching
-- **Modern Architecture**:
-  - Component-based structure
-  - Custom hooks for reusable logic
-  - Context API for global state
-  - Repository pattern for API calls
-- **Real-time Updates**: Auto-refresh for orders and menu items
-- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Next.js 16** with App Router
+- **TypeScript** for type safety
+- **Tailwind CSS** for styling
+- **SWR** for data fetching
+- **JWT Authentication** with role-based access control
+- **Responsive Design** for all devices
 
-## 📁 Project Structure
+## 📋 Prerequisites
 
-```
-src/
-├── app/                    # Next.js app directory
-│   ├── layout.tsx         # Root layout with providers
-│   ├── page.tsx           # Main app entry point
-│   ├── providers.tsx      # SWR and Context providers
-│   └── globals.css        # Global styles
-├── components/            # React components
-│   ├── layout/            # Layout components (Sidebar, NavButton)
-│   ├── menu/              # Menu-related components (ProductCard)
-│   ├── cart/              # Cart components (CartItem)
-│   ├── orders/            # Order components (OrderCard)
-│   └── views/             # Page views (POSView, BaristaView)
-├── contexts/              # React Context providers
-│   └── CartContext.tsx    # Shopping cart state management
-├── lib/                   # Library code
-│   ├── api/               # API client and endpoints
-│   │   ├── client.ts      # Axios instance configuration
-│   │   ├── menuItems.ts   # Menu items API
-│   │   └── orders.ts      # Orders API
-│   └── hooks/             # Custom React hooks
-│       ├── useMenuItems.ts # Menu items data fetching
-│       └── useOrders.ts   # Orders data fetching and mutations
-├── types/                 # TypeScript type definitions
-│   └── index.ts           # Shared types
-├── utils/                 # Utility functions
-│   └── index.ts           # Helper functions
-└── constants/            # Application constants
-    └── index.ts           # Type-safe constants
-```
+- Node.js 18 or higher
+- npm or yarn
+- Backend server running (see backend README)
 
 ## 🛠️ Setup
 
-1. **Install dependencies**:
+### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
-2. **Configure environment variables**:
-Create a `.env.local` file:
-```env
+### 2. Configure Environment Variables
+
+Create a `.env.local` file in the frontend directory (or copy from `.env.example`):
+
+```bash
+# Copy example file
+cp .env.example .env.local
+
+# Or create manually
+cat > .env.local << EOF
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+EOF
 ```
 
-3. **Run development server**:
+**Important**: 
+- Environment variables must start with `NEXT_PUBLIC_` to be accessible in the browser
+- The frontend connects directly to the backend API. Make sure the backend is running before starting the frontend
+- Restart the dev server after changing `.env.local` files
+
+### 3. Start Development Server
+
 ```bash
 npm run dev
 ```
 
-4. **Build for production**:
+The application will be available at http://localhost:3000
+
+## 🔐 Authentication
+
+The frontend uses JWT authentication. After seeding the backend database, you can login with:
+
+- **Manager**: `john.smith@coffeeshop.com` / `password123`
+- **Barista**: `sarah.j@coffeeshop.com` / `password123`
+- **Cashier**: `emma.w@coffeeshop.com` / `password123`
+
+## 📁 Project Structure
+
+```
+frontend/
+├── src/
+│   ├── app/              # Next.js App Router pages
+│   ├── components/       # React components
+│   ├── contexts/         # React contexts (Auth, Cart)
+│   ├── lib/
+│   │   ├── api/          # API client functions (connects to backend)
+│   │   └── hooks/        # Custom React hooks
+│   └── types/            # TypeScript type definitions
+├── dev-mocks/            # Mock data (for reference only)
+└── public/               # Static assets
+```
+
+## 🔌 Backend Connection
+
+The frontend connects to the backend API at `http://localhost:8000/api/v1` by default.
+
+To change the backend URL, update `.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://your-backend-url/api/v1
+```
+
+## 🧪 Development
+
+### Running the Full Stack
+
+1. **Start Backend** (in `backend/` directory):
+   ```bash
+   cd backend
+   source venv/bin/activate
+   uvicorn app.main:app --reload
+   ```
+
+2. **Start Frontend** (in `frontend/` directory):
+   ```bash
+   npm run dev
+   ```
+
+3. **Access the Application**:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - API Docs: http://localhost:8000/docs
+
+### Building for Production
+
 ```bash
 npm run build
 npm start
 ```
 
-## 🎯 Key Patterns Used
+## 📝 Notes
 
-### 1. **Code Splitting**
-```typescript
-const POSView = dynamic(() => import('@/components/views/POSView'), {
-  loading: () => <div>Loading...</div>,
-});
-```
-
-### 2. **Component Memoization**
-```typescript
-const ProductCard = memo(({ item, onAdd }) => {
-  // Component implementation
-});
-```
-
-### 3. **Custom Hooks for Data Fetching**
-```typescript
-const { menuItems, isLoading } = useMenuItems(true);
-const { orders } = useOrdersByStatus('pending');
-```
-
-### 4. **Optimistic Updates**
-```typescript
-mutate('orders', (current) => [...current, newOrder], false);
-mutate('orders'); // Revalidate
-```
-
-### 5. **Type-Safe Constants**
-```typescript
-export const ORDER_STATUSES = {
-  PENDING: 'pending',
-  COMPLETED: 'completed',
-} as const;
-
-type OrderStatus = typeof ORDER_STATUSES[keyof typeof ORDER_STATUSES];
-```
-
-## 📡 API Integration
-
-The frontend connects to the FastAPI backend at `http://localhost:8000/api/v1`.
-
-### Endpoints Used:
-- `GET /menu-items` - Fetch all menu items
-- `GET /menu-items/category/{category}` - Filter by category
-- `POST /orders` - Create new order
-- `GET /orders/status/{status}` - Get orders by status
-- `PATCH /orders/{id}/status` - Update order status
-
-## 🎨 Styling
-
-- **Tailwind CSS** for utility-first styling
-- **Framer Motion** for smooth animations
-- **Lucide React** for icons
-
-## ⚡ Performance Optimizations
-
-1. **Lazy Loading**: Views are loaded on-demand
-2. **Memoization**: Components and callbacks are memoized
-3. **SWR Caching**: Automatic request deduplication and caching
-4. **Optimistic Updates**: UI updates immediately, syncs in background
-5. **Image Optimization**: Lazy loading for product images
-
-## 🔒 Type Safety
-
-- Strict TypeScript configuration
-- No `any` types allowed
-- Proper type inference throughout
-- Type-safe API calls and responses
-
-## 📝 Development Guidelines
-
-1. **Always use TypeScript types** - No `any` types
-2. **Memoize expensive computations** - Use `useMemo` and `useCallback`
-3. **Split large components** - Keep components focused and small
-4. **Use custom hooks** - Extract reusable logic
-5. **Handle errors gracefully** - Provide user feedback
-6. **Optimize re-renders** - Use `React.memo` where appropriate
+- **Mock Data**: Mock data has been moved to `dev-mocks/` folder for reference. The frontend now uses the real backend API by default.
+- **Database Seeding**: To populate the backend with sample data, run `python scripts/seed_mock_data.py` in the backend directory.
+- **CORS**: The backend is configured to allow requests from `localhost:3000` by default.
 
 ## 🐛 Troubleshooting
 
-### API Connection Issues
-- Ensure backend is running on `http://localhost:8000`
-- Check `NEXT_PUBLIC_API_URL` in `.env.local`
+### Frontend can't connect to backend
 
-### Type Errors
-- Run `npm run build` to check for type errors
-- Ensure all imports use proper types
+1. Check that backend is running: `curl http://localhost:8000/health`
+2. Verify `NEXT_PUBLIC_API_URL` in `.env.local`
+3. Check browser console for CORS errors
 
-### Performance Issues
-- Check React DevTools Profiler
-- Verify memoization is working correctly
-- Check SWR cache configuration
+### Authentication not working
+
+1. Ensure backend database is seeded with employees
+2. Check that JWT tokens are being stored in localStorage
+3. Verify backend authentication endpoints are working
+
+### Build Errors
+
+1. Clear `.next` folder: `rm -rf .next`
+2. Reinstall dependencies: `rm -rf node_modules && npm install`
+3. Check TypeScript errors: `npm run build`
