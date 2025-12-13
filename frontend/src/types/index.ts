@@ -6,11 +6,11 @@ export interface MenuItem {
   price: number;
   category: string;
   description?: string;
+  image_url?: string;
   is_available: boolean;
   created_at: string;
   updated_at: string;
   is_deleted: boolean;
-  image?: string; // Frontend only - for display
 }
 
 export interface OrderDetail {
@@ -55,7 +55,7 @@ export interface CartItem {
   price: number;
   category: string;
   quantity: number;
-  image?: string;
+  image_url?: string;
 }
 
 export interface Category {

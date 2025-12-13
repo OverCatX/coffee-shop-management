@@ -22,12 +22,22 @@ class InventoryUpdate(BaseModel):
     employee_id: Optional[int] = None
 
 
+class IngredientInfo(BaseModel):
+    """Ingredient information for inventory response"""
+    ingredient_id: int
+    name: str
+    unit: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class InventoryResponse(InventoryBase):
     inventory_id: int
     last_updated: datetime
     created_at: datetime
     updated_at: datetime
     is_deleted: bool
+    ingredient: Optional[IngredientInfo] = None  # Include ingredient info
 
     model_config = ConfigDict(from_attributes=True)
 

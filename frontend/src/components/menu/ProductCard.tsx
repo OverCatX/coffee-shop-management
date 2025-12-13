@@ -1,9 +1,9 @@
 'use client';
 
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Plus } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { MenuItem } from '@/types';
+import { getMenuItemImageUrl, getPlaceholderImage } from '@/utils/imageUtils';
 
 interface ProductCardProps {
   item: MenuItem;
@@ -15,42 +15,52 @@ const ProductCard: React.FC<ProductCardProps> = memo(({ item, onAdd }) => {
     onAdd(item);
   }, [item, onAdd]);
 
-  const imageUrl = item.image || `https://images.unsplash.com/photo-1551033406-611cf9a28f67?w=400&q=80`;
+  const imageUrl = useMemo(() => {
+    return getMenuItemImageUrl(item);
+  }, [item]);
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -5 }}
-      className="bg-white rounded-3xl p-3 shadow-sm border border-stone-100 flex flex-col h-full cursor-pointer overflow-hidden relative group"
+    <div
+      className="bg-white rounded-lg border border-stone-200 flex flex-col h-full cursor-pointer overflow-hidden hover:shadow-lg hover:border-amber-400 transition-all group"
       onClick={handleClick}
     >
-      <div className="h-40 w-full rounded-2xl overflow-hidden relative mb-3">
+      <div className="h-44 w-full overflow-hidden relative bg-stone-100">
         <img
           src={imageUrl}
           alt={item.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = getPlaceholderImage(item);
+          }}
         />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-        <button className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-          <Plus size={18} className="text-stone-800" />
-        </button>
         {!item.is_available && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
             <span className="text-white font-bold text-sm">Out of Stock</span>
           </div>
         )}
       </div>
-      <div className="flex justify-between items-start mt-auto px-1">
-        <div>
-          <h3 className="font-semibold text-stone-800 text-sm">{item.name}</h3>
-          <p className="text-stone-400 text-xs mt-1">{item.category}</p>
+      <div className="p-3 flex-1 flex flex-col">
+        <div className="flex-1 mb-2">
+          <h3 className="font-semibold text-stone-800 text-sm mb-1 line-clamp-2">{item.name}</h3>
+          <p className="text-stone-500 text-xs">{item.category}</p>
         </div>
-        <span className="font-bold text-amber-600 text-sm">฿{Number(item.price).toFixed(2)}</span>
+        <div className="flex items-center justify-between pt-2 border-t border-stone-100">
+          <span className="font-bold text-amber-600 text-base">฿{Number(item.price).toFixed(2)}</span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClick();
+            }}
+            className="p-2 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
+            aria-label="Add to cart"
+          >
+            <Plus size={16} className="text-amber-700" />
+          </button>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 });
 

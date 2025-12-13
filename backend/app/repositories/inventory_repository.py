@@ -59,8 +59,8 @@ class InventoryRepository:
         self.db.add(inventory)
         self.db.commit()
         self.db.refresh(inventory)
-        logger.info(f"Created inventory record: {inventory.inventory_id}")
-        return inventory
+        # Reload with ingredient relationship
+        return self.get(inventory.inventory_id) or inventory
 
     def update(self, inventory_id: int, inventory_data: InventoryUpdate) -> Optional[Inventory]:
         """Update an existing inventory record"""
@@ -93,7 +93,8 @@ class InventoryRepository:
         self.db.commit()
         self.db.refresh(inventory)
         logger.info(f"Updated quantity for ingredient {ingredient_id}: {quantity_change}")
-        return inventory
+        # Reload with ingredient relationship
+        return self.get_by_ingredient(ingredient_id)
 
     def delete(self, inventory_id: int) -> bool:
         """Soft delete an inventory record"""

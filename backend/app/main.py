@@ -2,7 +2,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logging import logger
-from app.api import employees, customers, menu_items, orders, payments, inventory, auth
+from app.api import (
+    employees,
+    customers,
+    menu_items,
+    orders,
+    payments,
+    inventory,
+    auth,
+    ingredients,
+    recipes,
+    stock,
+)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -56,6 +67,9 @@ app.include_router(menu_items.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
 app.include_router(payments.router, prefix="/api/v1")
 app.include_router(inventory.router, prefix="/api/v1")
+app.include_router(ingredients.router, prefix="/api/v1")
+app.include_router(recipes.router, prefix="/api/v1")
+app.include_router(stock.router, prefix="/api/v1")
 
 
 @app.on_event("startup")

@@ -6,6 +6,7 @@ export interface MenuItemCreate {
   price: number;
   category: string;
   description?: string;
+  image_url?: string;
   is_available?: boolean;
 }
 
@@ -14,6 +15,7 @@ export interface MenuItemUpdate {
   price?: number;
   category?: string;
   description?: string;
+  image_url?: string;
   is_available?: boolean;
 }
 

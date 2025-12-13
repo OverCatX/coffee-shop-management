@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Users, Plus, Edit2, Trash2 } from "lucide-react";
 import {
   useEmployees,
@@ -10,9 +10,14 @@ import {
 } from "@/lib/hooks/useEmployees";
 import { Employee, EmployeeCreate, EmployeeUpdate } from "@/lib/api/employees";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { paginateArray, getPaginationMeta } from "@/utils/pagination";
+import Pagination from "@/components/common/Pagination";
+
+const ITEMS_PER_PAGE = 20;
 
 function EmployeesPageContent() {
   const { employees, isLoading } = useEmployees();
+  const [currentPage, setCurrentPage] = useState(1);
   const { createEmployee } = useCreateEmployee();
   const { updateEmployee } = useUpdateEmployee();
   const { deleteEmployee } = useDeleteEmployee();
@@ -91,6 +96,15 @@ function EmployeesPageContent() {
     setIsModalOpen(true);
   }, []);
 
+  // Paginate employees
+  const paginatedEmployees = useMemo(() => {
+    return paginateArray(employees, currentPage, ITEMS_PER_PAGE);
+  }, [employees, currentPage]);
+
+  const paginationMeta = useMemo(() => {
+    return getPaginationMeta(currentPage, ITEMS_PER_PAGE, employees.length);
+  }, [currentPage, employees.length]);
+
   return (
     <div className="flex h-screen bg-stone-50 lg:pl-0 overflow-hidden">
       <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col overflow-hidden">
@@ -165,7 +179,7 @@ function EmployeesPageContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {employees.map((employee) => (
+                    {paginatedEmployees.map((employee) => (
                       <tr
                         key={employee.emp_id}
                         className="border-b border-stone-100 hover:bg-stone-50"
@@ -216,7 +230,7 @@ function EmployeesPageContent() {
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
-              {employees.map((employee) => (
+              {paginatedEmployees.map((employee) => (
                 <div
                   key={employee.emp_id}
                   className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100"
@@ -226,7 +240,9 @@ function EmployeesPageContent() {
                       <h3 className="font-bold text-stone-800 text-base">
                         {employee.name}
                       </h3>
-                      <p className="text-xs text-stone-500">ID: #{employee.emp_id}</p>
+                      <p className="text-xs text-stone-500">
+                        ID: #{employee.emp_id}
+                      </p>
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -246,7 +262,9 @@ function EmployeesPageContent() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-stone-500">Role:</span>
-                      <span className="text-stone-800 font-medium">{employee.role}</span>
+                      <span className="text-stone-800 font-medium">
+                        {employee.role}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-stone-500">Salary:</span>
@@ -256,20 +274,40 @@ function EmployeesPageContent() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-stone-500">Email:</span>
-                      <span className="text-stone-800">{employee.email || "-"}</span>
+                      <span className="text-stone-800">
+                        {employee.email || "-"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-stone-500">Phone:</span>
-                      <span className="text-stone-800">{employee.phone || "-"}</span>
+                      <span className="text-stone-800">
+                        {employee.phone || "-"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-stone-500">Hire Date:</span>
-                      <span className="text-stone-800">{employee.hire_date}</span>
+                      <span className="text-stone-800">
+                        {employee.hire_date}
+                      </span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!isLoading && paginationMeta.totalPages > 1 && (
+          <div className="mt-6 pt-6 border-t border-stone-200">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={paginationMeta.totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={employees.length}
+              showInfo={true}
+            />
           </div>
         )}
 
@@ -291,7 +329,7 @@ function EmployeesPageContent() {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    className="w-full px-4 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200 text-stone-800"
                   />
                 </div>
                 <div>
@@ -303,7 +341,7 @@ function EmployeesPageContent() {
                     onChange={(e) =>
                       setFormData({ ...formData, role: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    className="w-full px-4 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200 text-stone-800"
                   >
                     <option value="Barista">Barista</option>
                     <option value="Manager">Manager</option>
@@ -324,7 +362,7 @@ function EmployeesPageContent() {
                         salary: parseFloat(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    className="w-full px-4 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200 text-stone-800"
                   />
                 </div>
                 <div>
@@ -337,7 +375,7 @@ function EmployeesPageContent() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    className="w-full px-4 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200 text-stone-800"
                   />
                 </div>
                 <div>
@@ -350,7 +388,7 @@ function EmployeesPageContent() {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    className="w-full px-4 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200 text-stone-800"
                   />
                 </div>
                 {!editingEmployee && (
@@ -364,7 +402,7 @@ function EmployeesPageContent() {
                       onChange={(e) =>
                         setFormData({ ...formData, hire_date: e.target.value })
                       }
-                      className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200"
+                      className="w-full px-4 py-2 bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200 text-stone-800"
                     />
                   </div>
                 )}
@@ -396,7 +434,7 @@ function EmployeesPageContent() {
 
 export default function EmployeesPage() {
   return (
-    <ProtectedRoute allowedRoles={['Manager']}>
+    <ProtectedRoute allowedRoles={["Manager"]}>
       <EmployeesPageContent />
     </ProtectedRoute>
   );

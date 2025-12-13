@@ -1,44 +1,92 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { UserCircle, Plus, Edit2, Trash2, Search } from "lucide-react";
+import { useState, useCallback, useMemo } from "react";
+import { UserCircle, Plus, Edit2, Trash2, Search, Filter, X } from "lucide-react";
 import {
-  useCustomers,
-  useSearchCustomers,
+  useAllCustomers,
   useCreateCustomer,
   useUpdateCustomer,
   useDeleteCustomer,
 } from "@/lib/hooks/useCustomers";
 import { Customer, CustomerCreate, CustomerUpdate } from "@/lib/api/customers";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useDebounce } from "@/utils/debounce";
+import { filterCustomers, CustomerFilters } from "@/utils/customerFilter";
+import { paginateArray, getPaginationMeta } from "@/utils/pagination";
+import Pagination from "@/components/common/Pagination";
+
+const ITEMS_PER_PAGE = 20;
 
 function CustomersPageContent() {
-  const { customers, isLoading } = useCustomers();
-  const { customers: searchResults, search } = useSearchCustomers();
+  const { customers: allCustomers, isLoading } = useAllCustomers();
   const { createCustomer } = useCreateCustomer();
   const { updateCustomer } = useUpdateCustomer();
   const { deleteCustomer } = useDeleteCustomer();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Filter states
   const [searchQuery, setSearchQuery] = useState("");
+  const [minLoyaltyPoints, setMinLoyaltyPoints] = useState<string>("");
+  const [maxLoyaltyPoints, setMaxLoyaltyPoints] = useState<string>("");
+  const [hasEmail, setHasEmail] = useState<boolean | null>(null);
+  const [hasPhone, setHasPhone] = useState<boolean | null>(null);
   const [formData, setFormData] = useState<CustomerCreate>({
     name: "",
     phone: "",
     email: "",
     loyalty_points: 0,
   });
+  
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
-  const displayCustomers = searchQuery ? searchResults : customers;
+  // Build filters object
+  const filters: CustomerFilters = useMemo(() => ({
+    search: debouncedSearch,
+    minLoyaltyPoints: minLoyaltyPoints ? Number(minLoyaltyPoints) : undefined,
+    maxLoyaltyPoints: maxLoyaltyPoints ? Number(maxLoyaltyPoints) : undefined,
+    hasEmail,
+    hasPhone,
+  }), [debouncedSearch, minLoyaltyPoints, maxLoyaltyPoints, hasEmail, hasPhone]);
 
-  const handleSearch = useCallback(
-    (q: string) => {
-      setSearchQuery(q);
-      if (q) {
-        search(q);
-      }
-    },
-    [search]
-  );
+  // Filter customers
+  const filteredCustomers = useMemo(() => {
+    return filterCustomers(allCustomers, filters);
+  }, [allCustomers, filters]);
+
+  // Paginate filtered results
+  const paginatedCustomers = useMemo(() => {
+    return paginateArray(filteredCustomers, currentPage, ITEMS_PER_PAGE);
+  }, [filteredCustomers, currentPage]);
+
+  // Pagination metadata
+  const paginationMeta = useMemo(() => {
+    return getPaginationMeta(currentPage, ITEMS_PER_PAGE, filteredCustomers.length);
+  }, [currentPage, filteredCustomers.length]);
+
+  // Reset to page 1 when filters change
+  useMemo(() => {
+    if (currentPage > paginationMeta.totalPages && paginationMeta.totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [filters, paginationMeta.totalPages, currentPage]);
+
+  const handleSearch = useCallback((q: string) => {
+    setSearchQuery(q);
+    setCurrentPage(1); // Reset to first page on search
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setSearchQuery("");
+    setMinLoyaltyPoints("");
+    setMaxLoyaltyPoints("");
+    setHasEmail(null);
+    setHasPhone(null);
+    setCurrentPage(1);
+  }, []);
 
   const handleCreate = useCallback(async () => {
     try {
@@ -126,21 +174,131 @@ function CustomersPageContent() {
           </div>
         </header>
 
-        {/* Search */}
-        <div className="mb-4 sm:mb-6">
-          <div className="relative">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search customers..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 sm:py-3 bg-white border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-200"
-            />
+        {/* Search and Filters */}
+        <div className="mb-4 sm:mb-6 space-y-3">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Search by name, email, or phone..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 sm:py-3 bg-white border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-200"
+              />
+            </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`px-4 py-2 rounded-xl border transition-colors flex items-center gap-2 ${
+                showFilters
+                  ? 'bg-stone-900 text-white border-stone-900'
+                  : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
+              }`}
+            >
+              <Filter size={18} />
+              <span className="hidden sm:inline">Filters</span>
+            </button>
           </div>
+
+          {/* Advanced Filters */}
+          {showFilters && (
+            <div className="bg-white rounded-xl p-4 border border-stone-200 space-y-3">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-stone-800 text-sm">Advanced Filters</h3>
+                <button
+                  onClick={clearFilters}
+                  className="text-xs text-stone-500 hover:text-stone-700 flex items-center gap-1"
+                >
+                  <X size={14} />
+                  Clear All
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Loyalty Points Range */}
+                <div>
+                  <label className="block text-xs font-medium text-stone-700 mb-1">
+                    Min Points
+                  </label>
+                  <input
+                    type="number"
+                    value={minLoyaltyPoints}
+                    onChange={(e) => {
+                      setMinLoyaltyPoints(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="0"
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-stone-700 mb-1">
+                    Max Points
+                  </label>
+                  <input
+                    type="number"
+                    value={maxLoyaltyPoints}
+                    onChange={(e) => {
+                      setMaxLoyaltyPoints(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="∞"
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-200"
+                  />
+                </div>
+
+                {/* Email Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-stone-700 mb-1">
+                    Email
+                  </label>
+                  <select
+                    value={hasEmail === null ? 'all' : hasEmail ? 'yes' : 'no'}
+                    onChange={(e) => {
+                      setHasEmail(e.target.value === 'all' ? null : e.target.value === 'yes');
+                      setCurrentPage(1);
+                    }}
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-200"
+                  >
+                    <option value="all">All</option>
+                    <option value="yes">Has Email</option>
+                    <option value="no">No Email</option>
+                  </select>
+                </div>
+
+                {/* Phone Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-stone-700 mb-1">
+                    Phone
+                  </label>
+                  <select
+                    value={hasPhone === null ? 'all' : hasPhone ? 'yes' : 'no'}
+                    onChange={(e) => {
+                      setHasPhone(e.target.value === 'all' ? null : e.target.value === 'yes');
+                      setCurrentPage(1);
+                    }}
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-200"
+                  >
+                    <option value="all">All</option>
+                    <option value="yes">Has Phone</option>
+                    <option value="no">No Phone</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Active Filters Summary */}
+              {(filters.search || filters.minLoyaltyPoints !== undefined || filters.maxLoyaltyPoints !== undefined || filters.hasEmail !== null || filters.hasPhone !== null) && (
+                <div className="pt-2 border-t border-stone-100">
+                  <p className="text-xs text-stone-500">
+                    Showing {filteredCustomers.length} of {allCustomers.length} customers
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {isLoading ? (
@@ -176,7 +334,7 @@ function CustomersPageContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {displayCustomers.map((customer) => (
+                    {paginatedCustomers.map((customer) => (
                       <tr
                         key={customer.customer_id}
                         className="border-b border-stone-100 hover:bg-stone-50"
@@ -221,7 +379,7 @@ function CustomersPageContent() {
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
-              {displayCustomers.map((customer) => (
+              {paginatedCustomers.map((customer) => (
                 <div
                   key={customer.customer_id}
                   className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100"
@@ -267,6 +425,20 @@ function CustomersPageContent() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!isLoading && paginationMeta.totalPages > 1 && (
+          <div className="mt-6 pt-6 border-t border-stone-200">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={paginationMeta.totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredCustomers.length}
+              showInfo={true}
+            />
           </div>
         )}
 

@@ -41,8 +41,48 @@ a {
 
 @media (prefers-color-scheme: dark) {
   html {
-    color-scheme: dark;
+    color-scheme: light; /* Force light mode for inputs */
   }
+}
+
+/* Force light background for all form inputs - prevent dark mode override */
+input,
+textarea,
+select {
+  background-color: white !important;
+  color: #171717 !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+input[type="search"],
+textarea,
+select {
+  background-color: white !important;
+  color: #171717 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important;
+  opacity: 1;
+}
+
+/* Fix for date input */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0);
+}
+
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-outer-spin-button {
+  filter: invert(0);
 }
 
 /* Custom scrollbar */

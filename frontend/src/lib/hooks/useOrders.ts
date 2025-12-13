@@ -31,7 +31,8 @@ export const useOrdersByStatus = (status: 'pending' | 'completed' | 'cancelled')
     {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
-      refreshInterval: 3000, // Poll every 3 seconds for active orders
+      // Reduce polling frequency: 5s for pending, 10s for completed
+      refreshInterval: status === 'pending' ? 5000 : 10000,
     }
   );
 

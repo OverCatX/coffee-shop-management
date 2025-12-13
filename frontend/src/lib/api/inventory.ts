@@ -1,5 +1,11 @@
 import apiClient from './client';
 
+export interface IngredientInfo {
+  ingredient_id: number;
+  name: string;
+  unit: string;
+}
+
 export interface Inventory {
   inventory_id: number;
   ingredient_id: number;
@@ -10,6 +16,7 @@ export interface Inventory {
   created_at: string;
   updated_at: string;
   is_deleted: boolean;
+  ingredient?: IngredientInfo; // Ingredient details
 }
 
 export interface InventoryCreate {

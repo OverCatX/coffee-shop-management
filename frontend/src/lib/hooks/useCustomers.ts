@@ -1,15 +1,18 @@
 import useSWR from 'swr';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { customersApi, Customer, CustomerCreate, CustomerUpdate } from '@/lib/api/customers';
 import { mutate } from 'swr';
 import { showToast } from '@/utils/toast';
 
-export const useCustomers = () => {
+export const useCustomers = (page: number = 1, limit: number = 20) => {
+  const skip = (page - 1) * limit;
+  
   const { data, error, isLoading, mutate: mutateCustomers } = useSWR<Customer[]>(
-    'customers',
-    () => customersApi.getAll(),
+    ['customers', skip, limit],
+    () => customersApi.getAll(skip, limit),
     {
       revalidateOnFocus: false,
+      dedupingInterval: 5000,
     }
   );
 
@@ -21,8 +24,27 @@ export const useCustomers = () => {
   };
 };
 
+// Hook for getting all customers (for filtering)
+export const useAllCustomers = () => {
+  const { data, error, isLoading } = useSWR<Customer[]>(
+    'customers-all',
+    () => customersApi.getAll(0, 10000), // Get all for client-side filtering
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 10000, // Cache longer
+    }
+  );
+
+  return {
+    customers: data || [],
+    isLoading,
+    isError: error,
+  };
+};
+
 export const useSearchCustomers = () => {
   const [query, setQuery] = useState<string>('');
+  
   const { data, error, isLoading } = useSWR<Customer[]>(
     query ? ['customers', 'search', query] : null,
     () => customersApi.search(query),

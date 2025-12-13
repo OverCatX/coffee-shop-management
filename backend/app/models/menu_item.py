@@ -11,6 +11,7 @@ class MenuItem(BaseModel):
     price = Column(Numeric(10, 2), nullable=False)
     category = Column(String(50), nullable=False, index=True)
     description = Column(String(500), nullable=True)
+    image_url = Column(String(500), nullable=True)
     is_available = Column(Boolean, default=True, nullable=False, index=True)
 
     # Relationships

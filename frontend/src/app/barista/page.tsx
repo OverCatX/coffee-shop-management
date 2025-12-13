@@ -1,11 +1,23 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
-import { ChefHat, CheckCircle } from "lucide-react";
-import { AnimatePresence } from "framer-motion";
+import { useMemo, useCallback, useState, useEffect } from "react";
+import {
+  ChefHat,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+} from "lucide-react";
 import OrderCard from "@/components/orders/OrderCard";
 import { useOrdersByStatus, useUpdateOrderStatus } from "@/lib/hooks/useOrders";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useMenuItems } from "@/lib/hooks/useMenuItems";
+import { useLowStockInventory } from "@/lib/hooks/useInventory";
+import RestockModal from "@/components/stock/RestockModal";
+import { IngredientInfo } from "@/lib/api/inventory";
+import { paginateArray, getPaginationMeta } from "@/utils/pagination";
+import Pagination from "@/components/common/Pagination";
+
+const ITEMS_PER_PAGE = 12;
 
 function BaristaPageContent() {
   const { orders: pendingOrders, isLoading: isLoadingPending } =
@@ -13,12 +25,67 @@ function BaristaPageContent() {
   const { orders: completedOrders, isLoading: isLoadingCompleted } =
     useOrdersByStatus("completed");
   const { updateStatus } = useUpdateOrderStatus();
+  const { menuItems } = useMenuItems();
+  const { lowStockItems } = useLowStockInventory();
+  const [restockingIngredient, setRestockingIngredient] = useState<{
+    ingredient: IngredientInfo;
+    quantity: number;
+    minThreshold: number;
+  } | null>(null);
+  const [filter, setFilter] = useState<"pending" | "completed">("pending");
+  const [pendingPage, setPendingPage] = useState(1);
+  const [completedPage, setCompletedPage] = useState(1);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  const activeOrders = useMemo(() => {
-    return [...pendingOrders, ...completedOrders].filter(
-      (order) => order.status === "pending" || order.status === "completed"
-    );
-  }, [pendingOrders, completedOrders]);
+  // Update current time every second for timers
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Sort orders by creation time (oldest first) and calculate wait time
+  const sortedPendingOrders = useMemo(() => {
+    return [...pendingOrders]
+      .map((order) => {
+        const createdTime = new Date(order.created_at).getTime();
+        const waitTime = Math.floor((currentTime.getTime() - createdTime) / 1000);
+        return { ...order, waitTime };
+      })
+      .sort((a, b) => {
+        if (a.waitTime > 300 && b.waitTime <= 300) return -1;
+        if (a.waitTime <= 300 && b.waitTime > 300) return 1;
+        return a.waitTime - b.waitTime;
+      });
+  }, [pendingOrders, currentTime]);
+
+  // Sort completed orders (newest first)
+  const sortedCompletedOrders = useMemo(() => {
+    return [...completedOrders]
+      .map((order) => {
+        const completedTime = new Date(order.updated_at).getTime();
+        return { ...order, completedTime };
+      })
+      .sort((a, b) => b.completedTime - a.completedTime);
+  }, [completedOrders]);
+
+  // Paginate orders based on filter
+  const paginatedPendingOrders = useMemo(() => {
+    return paginateArray(sortedPendingOrders, pendingPage, ITEMS_PER_PAGE);
+  }, [sortedPendingOrders, pendingPage]);
+
+  const paginatedCompletedOrders = useMemo(() => {
+    return paginateArray(sortedCompletedOrders, completedPage, ITEMS_PER_PAGE);
+  }, [sortedCompletedOrders, completedPage]);
+
+  const pendingPaginationMeta = useMemo(() => {
+    return getPaginationMeta(pendingPage, ITEMS_PER_PAGE, sortedPendingOrders.length);
+  }, [pendingPage, sortedPendingOrders.length]);
+
+  const completedPaginationMeta = useMemo(() => {
+    return getPaginationMeta(completedPage, ITEMS_PER_PAGE, sortedCompletedOrders.length);
+  }, [completedPage, sortedCompletedOrders.length]);
 
   const handleUpdateStatus = useCallback(
     async (
@@ -35,65 +102,212 @@ function BaristaPageContent() {
   );
 
   const pendingCount = useMemo(
-    () => activeOrders.filter((o) => o.status === "pending").length,
-    [activeOrders]
+    () => sortedPendingOrders.length,
+    [sortedPendingOrders]
   );
-  const preparingCount = useMemo(
-    () => activeOrders.filter((o) => o.status === "completed").length,
-    [activeOrders]
-  );
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const urgentCount = sortedPendingOrders.filter((o) => o.waitTime > 300).length;
+    const avgWaitTime = sortedPendingOrders.length > 0
+      ? Math.floor(sortedPendingOrders.reduce((sum, o) => sum + o.waitTime, 0) / sortedPendingOrders.length)
+      : 0;
+    return { urgentCount, avgWaitTime };
+  }, [sortedPendingOrders]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    if (filter === "pending") {
+      setPendingPage(1);
+    } else {
+      setCompletedPage(1);
+    }
+  }, [filter]);
 
   return (
     <div className="flex h-screen bg-stone-50 lg:pl-0 overflow-hidden">
       <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col overflow-hidden">
-        <header className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+        {/* Header */}
+        <header className="mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-stone-800 flex items-center gap-2 sm:gap-3">
                 <ChefHat className="text-amber-600" size={28} />
                 Barista Monitor
               </h1>
               <p className="text-stone-500 mt-2 text-sm sm:text-base">
-                Manage order queue in sequence
+                Manage order queue and track completed orders
               </p>
             </div>
-            <div className="flex gap-2 sm:gap-4">
-              <div className="bg-white px-3 sm:px-4 py-2 rounded-lg shadow-sm border border-stone-200 text-stone-600 flex items-center gap-2 text-xs sm:text-sm">
-                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-                Waiting: <span className="font-bold">{pendingCount}</span>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setFilter("pending")}
+              className={`px-5 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 ${
+                filter === "pending"
+                  ? "bg-stone-800 text-white"
+                  : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
+              }`}
+            >
+              <Clock size={18} />
+              Pending ({sortedPendingOrders.length})
+            </button>
+            <button
+              onClick={() => setFilter("completed")}
+              className={`px-5 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 ${
+                filter === "completed"
+                  ? "bg-stone-800 text-white"
+                  : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
+              }`}
+            >
+              <CheckCircle2 size={18} />
+              Completed ({sortedCompletedOrders.length})
+            </button>
+          </div>
+
+          {/* Stats Cards */}
+          {filter === "pending" && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+              <div className="bg-white rounded-lg p-3 border border-stone-200">
+                <p className="text-xs text-stone-500 mb-1">Pending</p>
+                <p className="text-xl font-bold text-stone-900">{pendingCount}</p>
               </div>
-              <div className="bg-white px-3 sm:px-4 py-2 rounded-lg shadow-sm border border-stone-200 text-stone-600 flex items-center gap-2 text-xs sm:text-sm">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                Completed: <span className="font-bold">{preparingCount}</span>
+              <div className="bg-white rounded-lg p-3 border border-stone-200">
+                <p className="text-xs text-stone-500 mb-1">Urgent</p>
+                <p className="text-xl font-bold text-red-600">{stats.urgentCount}</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-stone-200 col-span-2 sm:col-span-1">
+                <p className="text-xs text-stone-500 mb-1">Avg Wait</p>
+                <p className="text-xl font-bold text-stone-900">
+                  {Math.floor(stats.avgWaitTime / 60)}m {stats.avgWaitTime % 60}s
+                </p>
               </div>
             </div>
-          </div>
+          )}
         </header>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 pb-20">
-            {isLoadingPending || isLoadingCompleted ? (
-              <div className="col-span-full h-64 flex items-center justify-center text-stone-400">
-                <div>Loading orders...</div>
+          {/* Low Stock Alert */}
+          {filter === "pending" && lowStockItems.length > 0 && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="text-red-600" size={20} />
+                  <div>
+                    <p className="font-semibold text-red-800">
+                      Low Stock ({lowStockItems.length})
+                    </p>
+                    <p className="text-sm text-red-600">
+                      {lowStockItems.length} ingredient{lowStockItems.length > 1 ? 's' : ''} need restocking
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() =>
+                    lowStockItems[0]?.ingredient &&
+                    setRestockingIngredient({
+                      ingredient: lowStockItems[0].ingredient!,
+                      quantity: Number(lowStockItems[0].quantity),
+                      minThreshold: Number(lowStockItems[0].min_threshold),
+                    })
+                  }
+                  className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Restock
+                </button>
               </div>
-            ) : activeOrders.length === 0 ? (
-              <div className="col-span-full h-64 flex flex-col items-center justify-center text-stone-400 border-2 border-dashed border-stone-200 rounded-3xl">
-                <CheckCircle size={48} className="mb-2 opacity-50" />
-                <p>No orders yet</p>
+            </div>
+          )}
+
+          {/* Orders Section */}
+          {filter === "pending" ? (
+            isLoadingPending ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-stone-400">Loading orders...</div>
+              </div>
+            ) : pendingCount > 0 ? (
+              <div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {paginatedPendingOrders.map((order) => (
+                    <OrderCard
+                      key={order.order_id}
+                      order={order}
+                      updateStatus={handleUpdateStatus}
+                      menuItems={menuItems}
+                    />
+                  ))}
+                </div>
+                {pendingPaginationMeta.totalPages > 1 && (
+                  <div className="mt-6">
+                    <Pagination
+                      currentPage={pendingPage}
+                      totalPages={pendingPaginationMeta.totalPages}
+                      onPageChange={setPendingPage}
+                      itemsPerPage={ITEMS_PER_PAGE}
+                      totalItems={sortedPendingOrders.length}
+                      showInfo={true}
+                    />
+                  </div>
+                )}
               </div>
             ) : (
-              <AnimatePresence>
-                {activeOrders.map((order) => (
-                  <OrderCard
-                    key={order.order_id}
-                    order={order}
-                    updateStatus={handleUpdateStatus}
-                  />
-                ))}
-              </AnimatePresence>
-            )}
-          </div>
+              <div className="flex flex-col items-center justify-center h-64 bg-white rounded-lg border border-stone-200">
+                <CheckCircle2 size={48} className="text-stone-300 mb-3" />
+                <p className="text-lg font-semibold text-stone-700">All Clear!</p>
+                <p className="text-sm text-stone-500">No pending orders</p>
+              </div>
+            )
+          ) : (
+            isLoadingCompleted ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-stone-400">Loading orders...</div>
+              </div>
+            ) : sortedCompletedOrders.length > 0 ? (
+              <div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {paginatedCompletedOrders.map((order) => (
+                    <OrderCard
+                      key={order.order_id}
+                      order={order}
+                      updateStatus={handleUpdateStatus}
+                      menuItems={menuItems}
+                    />
+                  ))}
+                </div>
+                {completedPaginationMeta.totalPages > 1 && (
+                  <div className="mt-6">
+                    <Pagination
+                      currentPage={completedPage}
+                      totalPages={completedPaginationMeta.totalPages}
+                      onPageChange={setCompletedPage}
+                      itemsPerPage={ITEMS_PER_PAGE}
+                      totalItems={sortedCompletedOrders.length}
+                      showInfo={true}
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 bg-white rounded-lg border border-stone-200">
+                <CheckCircle2 size={48} className="text-stone-300 mb-3" />
+                <p className="text-lg font-semibold text-stone-700">No Completed Orders</p>
+                <p className="text-sm text-stone-500">Completed orders will appear here</p>
+              </div>
+            )
+          )}
         </div>
+
+        {/* Restock Modal */}
+        {restockingIngredient && (
+          <RestockModal
+            ingredient={restockingIngredient.ingredient}
+            currentQuantity={restockingIngredient.quantity}
+            minThreshold={restockingIngredient.minThreshold}
+            onClose={() => setRestockingIngredient(null)}
+          />
+        )}
       </div>
     </div>
   );
@@ -101,7 +315,7 @@ function BaristaPageContent() {
 
 export default function BaristaPage() {
   return (
-    <ProtectedRoute allowedRoles={['Barista', 'Manager']}>
+    <ProtectedRoute allowedRoles={["Barista", "Manager"]}>
       <BaristaPageContent />
     </ProtectedRoute>
   );

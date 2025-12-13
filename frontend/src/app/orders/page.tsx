@@ -4,11 +4,16 @@ import { useState, useMemo } from "react";
 import { ShoppingBag, Filter, Calendar } from "lucide-react";
 import { useOrders } from "@/lib/hooks/useOrders";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { paginateArray, getPaginationMeta } from "@/utils/pagination";
+import Pagination from "@/components/common/Pagination";
+
+const ITEMS_PER_PAGE = 20;
 
 function OrdersPageContent() {
   const { orders, isLoading } = useOrders();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredOrders = useMemo(() => {
     let filtered = orders;
@@ -28,11 +33,43 @@ function OrdersPageContent() {
     });
   }, [orders, statusFilter, dateFilter]);
 
+  // Paginate filtered orders
+  const paginatedOrders = useMemo(() => {
+    return paginateArray(filteredOrders, currentPage, ITEMS_PER_PAGE);
+  }, [filteredOrders, currentPage]);
+
+  const paginationMeta = useMemo(() => {
+    return getPaginationMeta(
+      currentPage,
+      ITEMS_PER_PAGE,
+      filteredOrders.length
+    );
+  }, [currentPage, filteredOrders.length]);
+
+  // Reset to page 1 when filters change
+  useMemo(() => {
+    if (
+      currentPage > paginationMeta.totalPages &&
+      paginationMeta.totalPages > 0
+    ) {
+      setCurrentPage(1);
+    }
+  }, [statusFilter, dateFilter, paginationMeta.totalPages, currentPage]);
+
   const stats = useMemo(() => {
-    const totalRevenue = filteredOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
-    const pendingCount = filteredOrders.filter((o) => o.status === "pending").length;
-    const completedCount = filteredOrders.filter((o) => o.status === "completed").length;
-    const cancelledCount = filteredOrders.filter((o) => o.status === "cancelled").length;
+    const totalRevenue = filteredOrders.reduce(
+      (sum, o) => sum + Number(o.total_amount),
+      0
+    );
+    const pendingCount = filteredOrders.filter(
+      (o) => o.status === "pending"
+    ).length;
+    const completedCount = filteredOrders.filter(
+      (o) => o.status === "completed"
+    ).length;
+    const cancelledCount = filteredOrders.filter(
+      (o) => o.status === "cancelled"
+    ).length;
 
     return {
       totalRevenue,
@@ -51,27 +88,43 @@ function OrdersPageContent() {
             <ShoppingBag className="text-amber-600" size={28} />
             Orders History
           </h1>
-          <p className="text-stone-500 mt-2 text-sm sm:text-base">View and manage all orders</p>
+          <p className="text-stone-500 mt-2 text-sm sm:text-base">
+            View and manage all orders
+          </p>
         </header>
 
         <div className="flex-1 overflow-y-auto">
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
             <div className="bg-white rounded-2xl p-4 sm:p-6 border border-stone-100">
-              <p className="text-xs sm:text-sm text-stone-500 mb-1">Total Revenue</p>
-              <p className="text-xl sm:text-2xl font-bold text-stone-800">฿{stats.totalRevenue.toFixed(2)}</p>
+              <p className="text-xs sm:text-sm text-stone-500 mb-1">
+                Total Revenue
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-stone-800">
+                ฿{stats.totalRevenue.toFixed(2)}
+              </p>
             </div>
             <div className="bg-white rounded-2xl p-4 sm:p-6 border border-stone-100">
-              <p className="text-xs sm:text-sm text-stone-500 mb-1">Total Orders</p>
-              <p className="text-xl sm:text-2xl font-bold text-stone-800">{stats.totalOrders}</p>
+              <p className="text-xs sm:text-sm text-stone-500 mb-1">
+                Total Orders
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-stone-800">
+                {stats.totalOrders}
+              </p>
             </div>
             <div className="bg-white rounded-2xl p-4 sm:p-6 border border-stone-100">
-              <p className="text-xs sm:text-sm text-stone-500 mb-1">Completed</p>
-              <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.completedCount}</p>
+              <p className="text-xs sm:text-sm text-stone-500 mb-1">
+                Completed
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-green-600">
+                {stats.completedCount}
+              </p>
             </div>
             <div className="bg-white rounded-2xl p-4 sm:p-6 border border-stone-100">
               <p className="text-xs sm:text-sm text-stone-500 mb-1">Pending</p>
-              <p className="text-xl sm:text-2xl font-bold text-amber-600">{stats.pendingCount}</p>
+              <p className="text-xl sm:text-2xl font-bold text-amber-600">
+                {stats.pendingCount}
+              </p>
             </div>
           </div>
 
@@ -82,7 +135,7 @@ function OrdersPageContent() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="border-none focus:outline-none text-xs sm:text-sm font-medium w-full"
+                className="border-none focus:outline-none text-xs sm:text-sm font-medium w-full bg-transparent text-stone-800"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -96,7 +149,7 @@ function OrdersPageContent() {
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="border-none focus:outline-none text-xs sm:text-sm font-medium w-full"
+                className="border-none focus:outline-none text-xs sm:text-sm font-medium w-full bg-transparent text-stone-800"
               />
             </div>
             {dateFilter && (
@@ -143,8 +196,11 @@ function OrdersPageContent() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredOrders.map((order) => (
-                        <tr key={order.order_id} className="border-b border-stone-100 hover:bg-stone-50">
+                      {paginatedOrders.map((order) => (
+                        <tr
+                          key={order.order_id}
+                          className="border-b border-stone-100 hover:bg-stone-50"
+                        >
                           <td className="px-4 sm:px-6 py-4 text-xs sm:text-sm font-medium text-stone-800">
                             #{order.order_id}
                           </td>
@@ -152,7 +208,9 @@ function OrdersPageContent() {
                             {order.order_date}
                           </td>
                           <td className="px-4 sm:px-6 py-4 text-xs sm:text-sm text-stone-600">
-                            {order.customer_id ? `Customer #${order.customer_id}` : "Walk-in"}
+                            {order.customer_id
+                              ? `Customer #${order.customer_id}`
+                              : "Walk-in"}
                           </td>
                           <td className="px-4 sm:px-6 py-4 text-xs sm:text-sm text-stone-600">
                             {order.order_details.length} item(s)
@@ -182,15 +240,19 @@ function OrdersPageContent() {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-4">
-                {filteredOrders.map((order) => (
+                {paginatedOrders.map((order) => (
                   <div
                     key={order.order_id}
                     className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100"
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h3 className="font-bold text-stone-800 text-base">Order #{order.order_id}</h3>
-                        <p className="text-xs text-stone-500">{order.order_date}</p>
+                        <h3 className="font-bold text-stone-800 text-base">
+                          Order #{order.order_id}
+                        </h3>
+                        <p className="text-xs text-stone-500">
+                          {order.order_date}
+                        </p>
                       </div>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-bold ${
@@ -208,12 +270,16 @@ function OrdersPageContent() {
                       <div className="flex justify-between">
                         <span className="text-stone-500">Customer:</span>
                         <span className="text-stone-800">
-                          {order.customer_id ? `Customer #${order.customer_id}` : "Walk-in"}
+                          {order.customer_id
+                            ? `Customer #${order.customer_id}`
+                            : "Walk-in"}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-stone-500">Items:</span>
-                        <span className="text-stone-800">{order.order_details.length} item(s)</span>
+                        <span className="text-stone-800">
+                          {order.order_details.length} item(s)
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-stone-500">Total:</span>
@@ -227,6 +293,20 @@ function OrdersPageContent() {
               </div>
             </>
           )}
+
+          {/* Pagination */}
+          {!isLoading && paginationMeta.totalPages > 1 && (
+            <div className="mt-6 pt-6 border-t border-stone-200">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={paginationMeta.totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={ITEMS_PER_PAGE}
+                totalItems={filteredOrders.length}
+                showInfo={true}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -235,7 +315,7 @@ function OrdersPageContent() {
 
 export default function OrdersPage() {
   return (
-    <ProtectedRoute allowedRoles={['Manager', 'Barista', 'Cashier']}>
+    <ProtectedRoute allowedRoles={["Manager", "Barista", "Cashier"]}>
       <OrdersPageContent />
     </ProtectedRoute>
   );

@@ -5,7 +5,6 @@ import {
   Coffee,
   ShoppingBag,
   ChefHat,
-  Settings,
   Users,
   Package,
   Menu,
@@ -158,11 +157,6 @@ const Sidebar = memo<SidebarProps>(function Sidebar({ currentView, setView }) {
                 <p className="text-stone-400 text-xs">{user.role}</p>
               </div>
             )}
-            <NavButton
-              icon={<Settings size={24} />}
-              label="Settings"
-              isMobile={isMobile}
-            />
             <button
               onClick={logout}
               className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all duration-300 text-stone-400 hover:text-red-400 hover:bg-stone-800 ${

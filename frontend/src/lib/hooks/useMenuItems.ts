@@ -51,7 +51,8 @@ export const useCreateMenuItem = () => {
           error: 'Failed to create menu item',
         }
       );
-      mutate('menuItems');
+      // Mutate all menuItems keys
+      mutate((key) => Array.isArray(key) && key[0] === 'menuItems');
       return newItem;
     } catch (error) {
       throw error;
@@ -72,7 +73,8 @@ export const useUpdateMenuItem = () => {
           error: 'Failed to update menu item',
         }
       );
-      mutate('menuItems');
+      // Mutate all menuItems keys
+      mutate((key) => Array.isArray(key) && key[0] === 'menuItems');
       return updated;
     } catch (error) {
       throw error;
@@ -93,7 +95,8 @@ export const useDeleteMenuItem = () => {
           error: 'Failed to delete menu item',
         }
       );
-      mutate('menuItems');
+      // Mutate all menuItems keys
+      mutate((key) => Array.isArray(key) && key[0] === 'menuItems');
     } catch (error) {
       throw error;
     }
@@ -106,7 +109,8 @@ export const useToggleMenuItemAvailability = () => {
   const toggleAvailability = useCallback(async (id: number): Promise<MenuItem> => {
     try {
       const updated = await menuItemsApi.toggleAvailability(id);
-      mutate('menuItems');
+      // Mutate all menuItems keys
+      mutate((key) => Array.isArray(key) && key[0] === 'menuItems');
       showToast.success(
         updated.is_available 
           ? 'Menu item marked as available' 

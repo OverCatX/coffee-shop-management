@@ -46,14 +46,15 @@ class OrderRepository:
         ).order_by(Order.order_date.desc()).offset(skip).limit(limit).all()
 
     def get_by_status(self, status: str, skip: int = 0, limit: int = 100) -> List[Order]:
-        """Get orders by status"""
+        """Get orders by status with eager loading to prevent N+1 queries"""
         return self.db.query(Order).filter(
             and_(
                 Order.status == status,
                 Order.is_deleted == False
             )
         ).options(
-            joinedload(Order.customer)
+            joinedload(Order.customer),
+            selectinload(Order.order_details).joinedload(OrderDetail.menu_item)
         ).order_by(Order.order_date.desc()).offset(skip).limit(limit).all()
 
     def get_by_date_range(self, start_date: date, end_date: date, skip: int = 0, limit: int = 100) -> List[Order]:
