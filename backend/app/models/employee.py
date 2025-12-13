@@ -4,7 +4,6 @@ from sqlalchemy import (
     String,
     Numeric,
     Date,
-    ForeignKey,
     CheckConstraint,
 )
 from sqlalchemy.orm import relationship
@@ -24,49 +23,6 @@ class Employee(BaseModel):
     password_hash = Column(String(255), nullable=True)  # For authentication
 
     # Relationships
-    manager = relationship(
-        "Manager",
-        back_populates="employee",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
-    barista = relationship(
-        "Barista",
-        back_populates="employee",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
     inventory_records = relationship("Inventory", back_populates="employee")
 
     __table_args__ = (CheckConstraint("salary > 0", name="check_salary_positive"),)
-
-
-class Manager(BaseModel):
-    __tablename__ = "managers"
-
-    emp_id = Column(
-        Integer,
-        ForeignKey("employees.emp_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-
-    # Relationships
-    employee = relationship("Employee", back_populates="manager")
-
-
-class Barista(BaseModel):
-    __tablename__ = "baristas"
-
-    emp_id = Column(
-        Integer,
-        ForeignKey("employees.emp_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-
-    # Relationships
-    employee = relationship("Employee", back_populates="barista")
-    menu_items = relationship(
-        "BaristaMenuItem", back_populates="barista", cascade="all, delete-orphan"
-    )

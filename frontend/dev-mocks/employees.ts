@@ -80,29 +80,5 @@ export const mockEmployeesApi = {
     employee.is_deleted = true;
     employee.updated_at = new Date().toISOString();
   },
-
-  createManager: async (empId: number): Promise<Employee> => {
-    await delay(400);
-    const index = employees.findIndex((emp) => emp.emp_id === empId && !emp.is_deleted);
-    if (index === -1) {
-      throw new Error(`Employee with id ${empId} not found`);
-    }
-    const employee = employees[index]!;
-    employee.role = 'Manager';
-    employee.updated_at = new Date().toISOString();
-    return employee;
-  },
-
-  createBarista: async (empId: number): Promise<Employee> => {
-    await delay(400);
-    const index = employees.findIndex((emp) => emp.emp_id === empId && !emp.is_deleted);
-    if (index === -1) {
-      throw new Error(`Employee with id ${empId} not found`);
-    }
-    const employee = employees[index]!;
-    employee.role = 'Barista';
-    employee.updated_at = new Date().toISOString();
-    return employee;
-  },
 };
 

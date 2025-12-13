@@ -1,4 +1,4 @@
-from app.schemas.employee import EmployeeCreate, EmployeeUpdate, EmployeeResponse, ManagerCreate, ManagerResponse, BaristaCreate, BaristaResponse
+from app.schemas.employee import EmployeeCreate, EmployeeUpdate, EmployeeResponse
 from app.schemas.customer import CustomerCreate, CustomerUpdate, CustomerResponse
 from app.schemas.ingredient import IngredientCreate, IngredientUpdate, IngredientResponse
 from app.schemas.menu_item import MenuItemCreate, MenuItemUpdate, MenuItemResponse
@@ -10,10 +10,6 @@ __all__ = [
     "EmployeeCreate",
     "EmployeeUpdate",
     "EmployeeResponse",
-    "ManagerCreate",
-    "ManagerResponse",
-    "BaristaCreate",
-    "BaristaResponse",
     "CustomerCreate",
     "CustomerUpdate",
     "CustomerResponse",

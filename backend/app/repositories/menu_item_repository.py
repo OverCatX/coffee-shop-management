@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
 from app.models.menu_item import MenuItem
 from app.models.junction_tables import MenuItemIngredient
@@ -18,8 +18,7 @@ class MenuItemRepository:
         return self.db.query(MenuItem).filter(
             and_(MenuItem.item_id == item_id, MenuItem.is_deleted == False)
         ).options(
-            joinedload(MenuItem.ingredients).joinedload(MenuItemIngredient.ingredient),
-            selectinload(MenuItem.baristas)
+            joinedload(MenuItem.ingredients).joinedload(MenuItemIngredient.ingredient)
         ).first()
 
     def get_all(self, skip: int = 0, limit: int = 100, available_only: bool = False) -> List[MenuItem]:

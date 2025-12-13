@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal, engine
 from app.core.security import get_password_hash
-from app.models.employee import Employee, Manager, Barista
+from app.models.employee import Employee
 from app.models.customer import Customer
 from app.models.menu_item import MenuItem
 from app.models.inventory import Inventory
@@ -208,14 +208,6 @@ def seed_employees(db: Session):
         db.flush()  # Get the emp_id
         
         employee_map[emp_data["email"]] = employee
-        
-        # Create role-specific records
-        if emp_data["role"] == "Manager":
-            manager = Manager(emp_id=employee.emp_id)
-            db.add(manager)
-        elif emp_data["role"] == "Barista":
-            barista = Barista(emp_id=employee.emp_id)
-            db.add(barista)
         
         print(f"  Created employee: {emp_data['name']} ({emp_data['role']})")
     

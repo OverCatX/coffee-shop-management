@@ -7,10 +7,6 @@ from app.schemas.employee import (
     EmployeeCreate,
     EmployeeUpdate,
     EmployeeResponse,
-    ManagerCreate,
-    ManagerResponse,
-    BaristaCreate,
-    BaristaResponse,
 )
 
 router = APIRouter(prefix="/employees", tags=["employees"], redirect_slashes=False)
@@ -69,31 +65,3 @@ def delete_employee(emp_id: int, db: Session = Depends(get_db)):
     repo = EmployeeRepository(db)
     if not repo.delete(emp_id):
         raise HTTPException(status_code=404, detail="Employee not found")
-
-
-@router.post(
-    "/{emp_id}/manager",
-    response_model=ManagerResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def create_manager(emp_id: int, db: Session = Depends(get_db)):
-    """Create a manager from an employee"""
-    repo = EmployeeRepository(db)
-    manager = repo.create_manager(emp_id)
-    if not manager:
-        raise HTTPException(status_code=404, detail="Employee not found")
-    return manager
-
-
-@router.post(
-    "/{emp_id}/barista",
-    response_model=BaristaResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def create_barista(emp_id: int, db: Session = Depends(get_db)):
-    """Create a barista from an employee"""
-    repo = EmployeeRepository(db)
-    barista = repo.create_barista(emp_id)
-    if not barista:
-        raise HTTPException(status_code=404, detail="Employee not found")
-    return barista

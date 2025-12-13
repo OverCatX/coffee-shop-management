@@ -63,16 +63,6 @@ const employeesApi = {
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`/employees/${id}`);
   },
-
-  createManager: async (empId: number): Promise<Employee> => {
-    const { data } = await apiClient.post<Employee>(`/employees/${empId}/manager`);
-    return data;
-  },
-
-  createBarista: async (empId: number): Promise<Employee> => {
-    const { data } = await apiClient.post<Employee>(`/employees/${empId}/barista`);
-    return data;
-  },
 };
 
 export { employeesApi };

@@ -1,7 +1,7 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from sqlalchemy import and_
-from app.models.employee import Employee, Manager, Barista
+from app.models.employee import Employee
 from app.schemas.employee import EmployeeCreate, EmployeeUpdate
 from app.core.logging import logger
 
@@ -13,12 +13,9 @@ class EmployeeRepository:
         self.db = db
 
     def get(self, emp_id: int) -> Optional[Employee]:
-        """Get employee by ID with relationships"""
+        """Get employee by ID"""
         return self.db.query(Employee).filter(
             and_(Employee.emp_id == emp_id, Employee.is_deleted == False)
-        ).options(
-            joinedload(Employee.manager),
-            joinedload(Employee.barista)
         ).first()
 
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Employee]:
@@ -68,30 +65,4 @@ class EmployeeRepository:
         self.db.commit()
         logger.info(f"Deleted employee: {emp_id}")
         return True
-
-    def create_manager(self, emp_id: int) -> Optional[Manager]:
-        """Create a manager from an employee"""
-        employee = self.get(emp_id)
-        if not employee:
-            return None
-        
-        manager = Manager(emp_id=emp_id)
-        self.db.add(manager)
-        self.db.commit()
-        self.db.refresh(manager)
-        logger.info(f"Created manager: {emp_id}")
-        return manager
-
-    def create_barista(self, emp_id: int) -> Optional[Barista]:
-        """Create a barista from an employee"""
-        employee = self.get(emp_id)
-        if not employee:
-            return None
-        
-        barista = Barista(emp_id=emp_id)
-        self.db.add(barista)
-        self.db.commit()
-        self.db.refresh(barista)
-        logger.info(f"Created barista: {emp_id}")
-        return barista
 

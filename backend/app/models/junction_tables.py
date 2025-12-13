@@ -3,37 +3,6 @@ from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
 
 
-class BaristaMenuItem(BaseModel):
-    __tablename__ = "barista_menu_items"
-
-    barista_id = Column(
-        Integer,
-        ForeignKey("baristas.emp_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    item_id = Column(
-        Integer,
-        ForeignKey("menu_items.item_id", ondelete="CASCADE"),
-        primary_key=True,
-        index=True,
-    )
-    proficiency_level = Column(
-        String(20), default="basic", nullable=False
-    )  # basic, intermediate, advanced
-
-    # Relationships
-    barista = relationship("Barista", back_populates="menu_items")
-    menu_item = relationship("MenuItem", back_populates="baristas")
-
-    __table_args__ = (
-        CheckConstraint(
-            "proficiency_level IN ('basic', 'intermediate', 'advanced')",
-            name="check_proficiency_level",
-        ),
-    )
-
-
 class MenuItemIngredient(BaseModel):
     __tablename__ = "menu_item_ingredients"
 
