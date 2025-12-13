@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     # Security Configuration
     SECRET_KEY: Optional[str] = "your-secret-key-change-in-production-use-env-variable"
 
+    # CORS Configuration
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001"  # Comma-separated origins
+    CORS_ALLOW_CREDENTIALS: bool = True
+    CORS_ALLOW_METHODS: str = "*"  # Comma-separated or "*" for all
+    CORS_ALLOW_HEADERS: str = "*"  # Comma-separated or "*" for all
+
     class Config:
         env_file = ".env"
         case_sensitive = True

@@ -5,9 +5,10 @@ from app.core.database import get_db
 from app.repositories.customer_repository import CustomerRepository
 from app.schemas.customer import CustomerCreate, CustomerUpdate, CustomerResponse
 
-router = APIRouter(prefix="/customers", tags=["customers"])
+router = APIRouter(prefix="/customers", tags=["customers"], redirect_slashes=False)
 
 
+@router.post("", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
 def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)):
     """Create a new customer"""
@@ -15,6 +16,7 @@ def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)):
     return repo.create(customer)
 
 
+@router.get("", response_model=List[CustomerResponse])
 @router.get("/", response_model=List[CustomerResponse])
 def get_customers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all customers"""

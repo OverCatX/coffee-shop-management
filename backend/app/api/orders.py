@@ -6,9 +6,10 @@ from app.core.database import get_db
 from app.repositories.order_repository import OrderRepository
 from app.schemas.order import OrderCreate, OrderUpdate, OrderResponse
 
-router = APIRouter(prefix="/orders", tags=["orders"])
+router = APIRouter(prefix="/orders", tags=["orders"], redirect_slashes=False)
 
 
+@router.post("", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 def create_order(order: OrderCreate, db: Session = Depends(get_db)):
     """Create a new order with order details and payment"""
@@ -21,6 +22,7 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error creating order: {str(e)}")
 
 
+@router.get("", response_model=List[OrderResponse])
 @router.get("/", response_model=List[OrderResponse])
 def get_orders(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all orders"""

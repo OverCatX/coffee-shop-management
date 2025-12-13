@@ -8,6 +8,7 @@ from app.schemas.menu_item import MenuItemCreate, MenuItemUpdate, MenuItemRespon
 router = APIRouter(prefix="/menu-items", tags=["menu-items"])
 
 
+@router.post("", response_model=MenuItemResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=MenuItemResponse, status_code=status.HTTP_201_CREATED)
 def create_menu_item(menu_item: MenuItemCreate, db: Session = Depends(get_db)):
     """Create a new menu item"""
@@ -15,6 +16,7 @@ def create_menu_item(menu_item: MenuItemCreate, db: Session = Depends(get_db)):
     return repo.create(menu_item)
 
 
+@router.get("", response_model=List[MenuItemResponse])
 @router.get("/", response_model=List[MenuItemResponse])
 def get_menu_items(
     skip: int = 0,

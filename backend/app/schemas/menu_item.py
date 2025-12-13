@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from decimal import Decimal
 from typing import Optional
+from datetime import datetime
 
 
 class MenuItemBase(BaseModel):
@@ -25,9 +26,16 @@ class MenuItemUpdate(BaseModel):
 
 class MenuItemResponse(MenuItemBase):
     item_id: int
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
     is_deleted: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer('created_at', 'updated_at')
+    def serialize_datetime(self, dt: datetime | None, _info) -> str | None:
+        """Serialize datetime to ISO format string"""
+        if dt is None:
+            return None
+        return dt.isoformat()
 

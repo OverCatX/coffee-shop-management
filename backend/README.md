@@ -89,16 +89,24 @@ Edit the `.env` file and update the following values:
 
 **Note**: The code will automatically convert `postgresql://` to `postgresql+psycopg://` to use psycopg (v3) driver.
 
-Example `.env`:
+    Example `.env`:
 
-```env
-DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/coffee_shop_db
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=yourpassword
-DB_NAME=coffee_shop_db
-```
+    ```env
+    DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/coffee_shop_db
+    DB_HOST=localhost
+    DB_PORT=5432
+    DB_USER=postgres
+    DB_PASSWORD=yourpassword
+    DB_NAME=coffee_shop_db
+
+    # CORS Configuration (optional)
+    # For development, allow localhost origins
+    CORS_ORIGINS=http://localhost:3000,http://localhost:3001
+    # For production, specify your frontend domain
+    # CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+    # Or use "*" to allow all origins (not recommended for production)
+    # CORS_ORIGINS=*
+    ```
 
 7. **Run database migrations:**
 
@@ -106,11 +114,34 @@ DB_NAME=coffee_shop_db
 alembic upgrade head
 ```
 
-8. **(Optional) Load seed data:**
+8. **(Optional) Seed database with mock data:**
+
+To seed the database with mock data from the frontend (including employees with hashed passwords):
 
 ```bash
-psql -U postgres -d coffee_shop_db -f database/seed_data.sql
+# Make sure virtual environment is activated
+source venv/bin/activate  # or .venv/bin/activate
+
+# Run the seeding script
+python scripts/seed_mock_data.py
 ```
+
+This will create:
+
+- 4 employees (Manager, 2 Baristas, Cashier) with hashed passwords
+- 4 customers
+- 10 menu items
+- 5 ingredients
+- Inventory records
+- Sample orders and order details
+
+**Demo Credentials** (after seeding):
+
+- Manager: `john.smith@coffeeshop.com` / `password123`
+- Barista: `sarah.j@coffeeshop.com` / `password123`
+- Cashier: `emma.w@coffeeshop.com` / `password123`
+
+**Note**: The script uses bcrypt to hash passwords. For SQL-only seeding (without password hashing), see `database/06_seed_mock_data.sql`, but it's recommended to use the Python script.
 
 9. **Run the application:**
 

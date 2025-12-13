@@ -13,9 +13,10 @@ from app.schemas.employee import (
     BaristaResponse,
 )
 
-router = APIRouter(prefix="/employees", tags=["employees"])
+router = APIRouter(prefix="/employees", tags=["employees"], redirect_slashes=False)
 
 
+@router.post("", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
 def create_employee(employee: EmployeeCreate, db: Session = Depends(get_db)):
     """Create a new employee"""
@@ -23,6 +24,7 @@ def create_employee(employee: EmployeeCreate, db: Session = Depends(get_db)):
     return repo.create(employee)
 
 
+@router.get("", response_model=List[EmployeeResponse])
 @router.get("/", response_model=List[EmployeeResponse])
 def get_employees(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all employees"""

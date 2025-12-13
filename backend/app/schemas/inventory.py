@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from decimal import Decimal
+from datetime import datetime
 from typing import Optional
 
 
@@ -23,10 +24,17 @@ class InventoryUpdate(BaseModel):
 
 class InventoryResponse(InventoryBase):
     inventory_id: int
-    last_updated: str
-    created_at: str
-    updated_at: str
+    last_updated: datetime
+    created_at: datetime
+    updated_at: datetime
     is_deleted: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer('created_at', 'updated_at', 'last_updated')
+    def serialize_datetime(self, dt: datetime | None, _info) -> str | None:
+        """Serialize datetime to ISO format string"""
+        if dt is None:
+            return None
+        return dt.isoformat()
 

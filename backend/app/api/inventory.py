@@ -6,9 +6,10 @@ from app.core.database import get_db
 from app.repositories.inventory_repository import InventoryRepository
 from app.schemas.inventory import InventoryCreate, InventoryUpdate, InventoryResponse
 
-router = APIRouter(prefix="/inventory", tags=["inventory"])
+router = APIRouter(prefix="/inventory", tags=["inventory"], redirect_slashes=False)
 
 
+@router.post("", response_model=InventoryResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=InventoryResponse, status_code=status.HTTP_201_CREATED)
 def create_inventory(inventory: InventoryCreate, db: Session = Depends(get_db)):
     """Create a new inventory record"""
@@ -16,6 +17,7 @@ def create_inventory(inventory: InventoryCreate, db: Session = Depends(get_db)):
     return repo.create(inventory)
 
 
+@router.get("", response_model=List[InventoryResponse])
 @router.get("/", response_model=List[InventoryResponse])
 def get_inventory(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all inventory records"""
