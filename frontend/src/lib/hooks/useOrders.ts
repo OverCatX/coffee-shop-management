@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { ordersApi } from '@/lib/api/orders';
 import { Order } from '@/types';
 import { mutate } from 'swr';
+import { showToast } from '@/utils/toast';
 
 export const useOrders = () => {
   const { data, error, isLoading, mutate: mutateOrders } = useSWR<Order[]>(
@@ -43,14 +44,22 @@ export const useOrdersByStatus = (status: 'pending' | 'completed' | 'cancelled')
 
 export const useCreateOrder = () => {
   const createOrder = useCallback(async (orderData: Parameters<typeof ordersApi.create>[0]): Promise<Order> => {
-    const newOrder = await ordersApi.create(orderData);
-    // Optimistically update cache
-    mutate('orders', (current: Order[] | undefined): Order[] => {
-      return current ? [...current, newOrder] : [newOrder];
-    }, false);
-    // Revalidate to ensure consistency
-    mutate('orders');
-    return newOrder;
+    const loadingToast = showToast.loading('Creating order...');
+    try {
+      const newOrder = await ordersApi.create(orderData);
+      showToast.dismiss(loadingToast);
+      showToast.success(`Order #${newOrder.order_id} created successfully!`);
+      // Optimistically update cache
+      mutate('orders', (current: Order[] | undefined): Order[] => {
+        return current ? [...current, newOrder] : [newOrder];
+      }, false);
+      // Revalidate to ensure consistency
+      mutate('orders');
+      return newOrder;
+    } catch (error) {
+      showToast.dismiss(loadingToast);
+      throw error;
+    }
   }, []);
 
   return { createOrder };
@@ -61,20 +70,31 @@ export const useUpdateOrderStatus = () => {
     orderId: number,
     status: 'pending' | 'completed' | 'cancelled'
   ): Promise<Order> => {
-    const updatedOrder = await ordersApi.updateStatus(orderId, status);
-    // Optimistically update cache
-    mutate('orders', (current: Order[] | undefined): Order[] => {
-      if (!current) return [updatedOrder];
-      return current.map((order: Order): Order =>
-        order.order_id === orderId ? updatedOrder : order
+    try {
+      const updatedOrder = await showToast.promise(
+        ordersApi.updateStatus(orderId, status),
+        {
+          loading: 'Updating order status...',
+          success: `Order #${orderId} marked as ${status}!`,
+          error: 'Failed to update order status',
+        }
       );
-    }, false);
-    // Also update status-specific cache
-    mutate(['orders', 'status', status]);
-    mutate(['orders', 'status', updatedOrder.status]);
-    // Revalidate
-    mutate('orders');
-    return updatedOrder;
+      // Optimistically update cache
+      mutate('orders', (current: Order[] | undefined): Order[] => {
+        if (!current) return [updatedOrder];
+        return current.map((order: Order): Order =>
+          order.order_id === orderId ? updatedOrder : order
+        );
+      }, false);
+      // Also update status-specific cache
+      mutate(['orders', 'status', status]);
+      mutate(['orders', 'status', updatedOrder.status]);
+      // Revalidate
+      mutate('orders');
+      return updatedOrder;
+    } catch (error) {
+      throw error;
+    }
   }, []);
 
   return { updateStatus };

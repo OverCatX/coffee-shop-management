@@ -12,6 +12,7 @@ import {
 import { MenuItem } from "@/types";
 import { MenuItemCreate, MenuItemUpdate } from "@/lib/api/menuItems";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { showToast } from "@/utils/toast";
 
 function MenuPageContent() {
   const { menuItems, isLoading } = useMenuItems();
@@ -31,18 +32,39 @@ function MenuPageContent() {
   });
 
   const handleCreate = useCallback(async () => {
+    // Validation
+    if (!formData.name.trim()) {
+      showToast.error("Menu item name is required");
+      return;
+    }
+    if (formData.price <= 0) {
+      showToast.error("Price must be greater than 0");
+      return;
+    }
+    
     try {
       await createMenuItem(formData);
       setIsModalOpen(false);
       setFormData({ name: "", price: 0, category: "Coffee", description: "", is_available: true });
     } catch (error) {
+      // Error toast is handled by hook
       console.error("Failed to create menu item:", error);
-      alert("Failed to create menu item");
     }
   }, [formData, createMenuItem]);
 
   const handleUpdate = useCallback(async () => {
     if (!editingItem) return;
+    
+    // Validation
+    if (!formData.name.trim()) {
+      showToast.error("Menu item name is required");
+      return;
+    }
+    if (formData.price <= 0) {
+      showToast.error("Price must be greater than 0");
+      return;
+    }
+    
     try {
       const updateData: MenuItemUpdate = {
         name: formData.name,
@@ -56,19 +78,19 @@ function MenuPageContent() {
       setEditingItem(null);
       setFormData({ name: "", price: 0, category: "Coffee", description: "", is_available: true });
     } catch (error) {
+      // Error toast is handled by hook
       console.error("Failed to update menu item:", error);
-      alert("Failed to update menu item");
     }
   }, [editingItem, formData, updateMenuItem]);
 
   const handleDelete = useCallback(
     async (id: number) => {
-      if (!confirm("Are you sure you want to delete this menu item?")) return;
+      if (!window.confirm("Are you sure you want to delete this menu item?")) return;
       try {
         await deleteMenuItem(id);
       } catch (error) {
+        // Error toast is handled by hook
         console.error("Failed to delete menu item:", error);
-        alert("Failed to delete menu item");
       }
     },
     [deleteMenuItem]

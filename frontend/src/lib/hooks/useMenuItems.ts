@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { menuItemsApi, MenuItemCreate, MenuItemUpdate } from '@/lib/api/menuItems';
 import { MenuItem } from '@/types';
 import { mutate } from 'swr';
+import { showToast } from '@/utils/toast';
 
 export const useMenuItems = (availableOnly: boolean = false) => {
   const { data, error, isLoading, mutate: mutateMenuItems } = useSWR<MenuItem[]>(
@@ -41,9 +42,20 @@ export const useMenuItemsByCategory = (category: string) => {
 
 export const useCreateMenuItem = () => {
   const createMenuItem = useCallback(async (menuItem: MenuItemCreate): Promise<MenuItem> => {
-    const newItem = await menuItemsApi.create(menuItem);
-    mutate('menuItems');
-    return newItem;
+    try {
+      const newItem = await showToast.promise(
+        menuItemsApi.create(menuItem),
+        {
+          loading: 'Creating menu item...',
+          success: `Menu item "${menuItem.name}" created successfully!`,
+          error: 'Failed to create menu item',
+        }
+      );
+      mutate('menuItems');
+      return newItem;
+    } catch (error) {
+      throw error;
+    }
   }, []);
 
   return { createMenuItem };
@@ -51,9 +63,20 @@ export const useCreateMenuItem = () => {
 
 export const useUpdateMenuItem = () => {
   const updateMenuItem = useCallback(async (id: number, menuItem: MenuItemUpdate): Promise<MenuItem> => {
-    const updated = await menuItemsApi.update(id, menuItem);
-    mutate('menuItems');
-    return updated;
+    try {
+      const updated = await showToast.promise(
+        menuItemsApi.update(id, menuItem),
+        {
+          loading: 'Updating menu item...',
+          success: `Menu item updated successfully!`,
+          error: 'Failed to update menu item',
+        }
+      );
+      mutate('menuItems');
+      return updated;
+    } catch (error) {
+      throw error;
+    }
   }, []);
 
   return { updateMenuItem };
@@ -61,8 +84,19 @@ export const useUpdateMenuItem = () => {
 
 export const useDeleteMenuItem = () => {
   const deleteMenuItem = useCallback(async (id: number): Promise<void> => {
-    await menuItemsApi.delete(id);
-    mutate('menuItems');
+    try {
+      await showToast.promise(
+        menuItemsApi.delete(id),
+        {
+          loading: 'Deleting menu item...',
+          success: 'Menu item deleted successfully!',
+          error: 'Failed to delete menu item',
+        }
+      );
+      mutate('menuItems');
+    } catch (error) {
+      throw error;
+    }
   }, []);
 
   return { deleteMenuItem };
@@ -70,9 +104,18 @@ export const useDeleteMenuItem = () => {
 
 export const useToggleMenuItemAvailability = () => {
   const toggleAvailability = useCallback(async (id: number): Promise<MenuItem> => {
-    const updated = await menuItemsApi.toggleAvailability(id);
-    mutate('menuItems');
-    return updated;
+    try {
+      const updated = await menuItemsApi.toggleAvailability(id);
+      mutate('menuItems');
+      showToast.success(
+        updated.is_available 
+          ? 'Menu item marked as available' 
+          : 'Menu item marked as unavailable'
+      );
+      return updated;
+    } catch (error) {
+      throw error;
+    }
   }, []);
 
   return { toggleAvailability };

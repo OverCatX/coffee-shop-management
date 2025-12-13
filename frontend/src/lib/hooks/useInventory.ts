@@ -2,6 +2,7 @@ import useSWR from 'swr';
 import { useCallback } from 'react';
 import { inventoryApi, Inventory, InventoryCreate, InventoryUpdate } from '@/lib/api/inventory';
 import { mutate } from 'swr';
+import { showToast } from '@/utils/toast';
 
 export const useInventory = () => {
   const { data, error, isLoading, mutate: mutateInventory } = useSWR<Inventory[]>(
@@ -40,10 +41,21 @@ export const useLowStockInventory = () => {
 
 export const useCreateInventory = () => {
   const createInventory = useCallback(async (inventory: InventoryCreate): Promise<Inventory> => {
-    const newInventory = await inventoryApi.create(inventory);
-    mutate('inventory');
-    mutate('inventory-low-stock');
-    return newInventory;
+    try {
+      const newInventory = await showToast.promise(
+        inventoryApi.create(inventory),
+        {
+          loading: 'Creating inventory record...',
+          success: 'Inventory record created successfully!',
+          error: 'Failed to create inventory record',
+        }
+      );
+      mutate('inventory');
+      mutate('inventory-low-stock');
+      return newInventory;
+    } catch (error) {
+      throw error;
+    }
   }, []);
 
   return { createInventory };
@@ -52,10 +64,21 @@ export const useCreateInventory = () => {
 export const useUpdateInventory = () => {
   const updateInventory = useCallback(
     async (id: number, inventory: InventoryUpdate): Promise<Inventory> => {
-      const updated = await inventoryApi.update(id, inventory);
-      mutate('inventory');
-      mutate('inventory-low-stock');
-      return updated;
+      try {
+        const updated = await showToast.promise(
+          inventoryApi.update(id, inventory),
+          {
+            loading: 'Updating inventory...',
+            success: 'Inventory updated successfully!',
+            error: 'Failed to update inventory',
+          }
+        );
+        mutate('inventory');
+        mutate('inventory-low-stock');
+        return updated;
+      } catch (error) {
+        throw error;
+      }
     },
     []
   );
@@ -66,10 +89,21 @@ export const useUpdateInventory = () => {
 export const useUpdateInventoryQuantity = () => {
   const updateQuantity = useCallback(
     async (ingredientId: number, quantityChange: number, employeeId?: number): Promise<Inventory> => {
-      const updated = await inventoryApi.updateQuantity(ingredientId, quantityChange, employeeId);
-      mutate('inventory');
-      mutate('inventory-low-stock');
-      return updated;
+      try {
+        const updated = await showToast.promise(
+          inventoryApi.updateQuantity(ingredientId, quantityChange, employeeId),
+          {
+            loading: 'Updating inventory quantity...',
+            success: `Inventory quantity ${quantityChange > 0 ? 'increased' : 'decreased'} successfully!`,
+            error: 'Failed to update inventory quantity',
+          }
+        );
+        mutate('inventory');
+        mutate('inventory-low-stock');
+        return updated;
+      } catch (error) {
+        throw error;
+      }
     },
     []
   );
@@ -79,9 +113,20 @@ export const useUpdateInventoryQuantity = () => {
 
 export const useDeleteInventory = () => {
   const deleteInventory = useCallback(async (id: number): Promise<void> => {
-    await inventoryApi.delete(id);
-    mutate('inventory');
-    mutate('inventory-low-stock');
+    try {
+      await showToast.promise(
+        inventoryApi.delete(id),
+        {
+          loading: 'Deleting inventory record...',
+          success: 'Inventory record deleted successfully!',
+          error: 'Failed to delete inventory record',
+        }
+      );
+      mutate('inventory');
+      mutate('inventory-low-stock');
+    } catch (error) {
+      throw error;
+    }
   }, []);
 
   return { deleteInventory };

@@ -1,6 +1,4 @@
 import apiClient from './client';
-import { mockInventoryApi } from '../mocks';
-import { USE_MOCK_DATA } from '../mocks';
 
 export interface Inventory {
   inventory_id: number;
@@ -27,7 +25,7 @@ export interface InventoryUpdate {
   employee_id?: number;
 }
 
-const realInventoryApi = {
+const inventoryApi = {
   getAll: async (skip: number = 0, limit: number = 1000): Promise<Inventory[]> => {
     const { data } = await apiClient.get<Inventory[]>('/inventory', {
       params: { skip, limit },
@@ -82,5 +80,5 @@ const realInventoryApi = {
   },
 };
 
-export const inventoryApi = USE_MOCK_DATA ? mockInventoryApi : realInventoryApi;
+export { inventoryApi };
 

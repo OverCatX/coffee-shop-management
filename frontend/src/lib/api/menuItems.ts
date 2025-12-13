@@ -1,7 +1,5 @@
 import apiClient from './client';
 import { MenuItem } from '@/types';
-import { mockMenuItemsApi } from '../mocks';
-import { USE_MOCK_DATA } from '../mocks';
 
 export interface MenuItemCreate {
   name: string;
@@ -19,7 +17,7 @@ export interface MenuItemUpdate {
   is_available?: boolean;
 }
 
-const realMenuItemsApi = {
+const menuItemsApi = {
   getAll: async (availableOnly: boolean = false): Promise<MenuItem[]> => {
     const { data } = await apiClient.get<MenuItem[]>('/menu-items', {
       params: { available_only: availableOnly, limit: 1000 },
@@ -59,5 +57,5 @@ const realMenuItemsApi = {
   },
 };
 
-export const menuItemsApi = USE_MOCK_DATA ? mockMenuItemsApi : realMenuItemsApi;
+export { menuItemsApi };
 

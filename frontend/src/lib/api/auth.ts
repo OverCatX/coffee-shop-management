@@ -1,6 +1,4 @@
 import apiClient from './client';
-import { mockAuthApi } from '../mocks';
-import { USE_MOCK_DATA } from '../mocks';
 
 export interface LoginRequest {
   email: string;
@@ -24,7 +22,7 @@ export interface UserInfo {
   phone?: string;
 }
 
-const realAuthApi = {
+const authApi = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     const { data } = await apiClient.post<LoginResponse>('/auth/login-json', credentials);
     return data;
@@ -40,7 +38,7 @@ const realAuthApi = {
   },
 };
 
-export const authApi = USE_MOCK_DATA ? mockAuthApi : realAuthApi;
+export { authApi };
 
 // Token management
 export const tokenStorage = {

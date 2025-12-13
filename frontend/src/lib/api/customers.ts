@@ -1,6 +1,4 @@
 import apiClient from './client';
-import { mockCustomersApi } from '../mocks';
-import { USE_MOCK_DATA } from '../mocks';
 
 export interface Customer {
   customer_id: number;
@@ -27,7 +25,7 @@ export interface CustomerUpdate {
   loyalty_points?: number;
 }
 
-const realCustomersApi = {
+const customersApi = {
   getAll: async (skip: number = 0, limit: number = 1000): Promise<Customer[]> => {
     const { data } = await apiClient.get<Customer[]>('/customers', {
       params: { skip, limit },
@@ -69,5 +67,5 @@ const realCustomersApi = {
   },
 };
 
-export const customersApi = USE_MOCK_DATA ? mockCustomersApi : realCustomersApi;
+export { customersApi };
 

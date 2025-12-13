@@ -1,9 +1,7 @@
 import apiClient from './client';
 import { Order, OrderCreate } from '@/types';
-import { mockOrdersApi } from '../mocks';
-import { USE_MOCK_DATA } from '../mocks';
 
-const realOrdersApi = {
+const ordersApi = {
   create: async (order: OrderCreate): Promise<Order> => {
     const { data } = await apiClient.post<Order>('/orders', order);
     return data;
@@ -36,5 +34,5 @@ const realOrdersApi = {
   },
 };
 
-export const ordersApi = USE_MOCK_DATA ? mockOrdersApi : realOrdersApi;
+export { ordersApi };
 

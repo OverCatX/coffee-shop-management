@@ -68,10 +68,10 @@ function POSPageContent() {
       await createOrder(orderData);
       clearCart();
       setIsCartOpen(false);
-      alert("Order Placed Successfully!");
+      // Success toast is handled by hook
     } catch (error) {
+      // Error toast is handled by hook
       console.error("Failed to place order:", error);
-      alert("Failed to place order. Please try again.");
     }
   }, [cart, getTotal, createOrder, clearCart]);
 
