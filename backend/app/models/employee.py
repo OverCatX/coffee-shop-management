@@ -21,6 +21,7 @@ class Employee(BaseModel):
     email = Column(String(100), unique=True, nullable=True, index=True)
     phone = Column(String(20), unique=True, nullable=True, index=True)
     hire_date = Column(Date, nullable=False)
+    password_hash = Column(String(255), nullable=True)  # For authentication
 
     # Relationships
     manager = relationship(

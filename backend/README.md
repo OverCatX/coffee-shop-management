@@ -32,9 +32,11 @@ backend/
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.11 or 3.12 (Python 3.13 may have compatibility issues)
 - PostgreSQL 12 or higher
 - pip (Python package manager)
+
+**Note**: If you're using Python 3.13, you may encounter compatibility issues. It's recommended to use Python 3.11 or 3.12.
 
 ### Step-by-Step Setup
 
@@ -84,6 +86,8 @@ Edit the `.env` file and update the following values:
 - `DB_PASSWORD`: Your PostgreSQL password
 - `DB_NAME`: Database name (default: `coffee_shop_db`)
 - `DATABASE_URL`: Full connection string (format: `postgresql://user:password@localhost:5432/dbname`)
+
+**Note**: The code will automatically convert `postgresql://` to `postgresql+psycopg://` to use psycopg (v3) driver.
 
 Example `.env`:
 

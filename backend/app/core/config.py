@@ -4,7 +4,9 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # Database Configuration
-    DATABASE_URL: str
+    DATABASE_URL: Optional[str] = (
+        None  # Optional, will be built from components if not provided
+    )
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_USER: str
@@ -20,6 +22,9 @@ class Settings(BaseSettings):
     # Server Configuration
     HOST: str = "0.0.0.0"
     PORT: int = 8000
+
+    # Security Configuration
+    SECRET_KEY: Optional[str] = "your-secret-key-change-in-production-use-env-variable"
 
     class Config:
         env_file = ".env"

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logging import logger
-from app.api import employees, customers, menu_items, orders, payments, inventory
+from app.api import employees, customers, menu_items, orders, payments, inventory, auth
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -23,6 +23,7 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(auth.router, prefix="/api/v1")
 app.include_router(employees.router, prefix="/api/v1")
 app.include_router(customers.router, prefix="/api/v1")
 app.include_router(menu_items.router, prefix="/api/v1")
