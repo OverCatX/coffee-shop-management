@@ -17,9 +17,6 @@ class MenuItem(BaseModel):
     ingredients = relationship(
         "MenuItemIngredient", back_populates="menu_item", cascade="all, delete-orphan"
     )
-    baristas = relationship(
-        "BaristaMenuItem", back_populates="menu_item", cascade="all, delete-orphan"
-    )
     order_details = relationship("OrderDetail", back_populates="menu_item")
 
     __table_args__ = (
