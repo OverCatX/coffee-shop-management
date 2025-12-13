@@ -72,19 +72,21 @@ npm run dev
 
 ## 📚 Database Documentation
 
-This project includes **comprehensive database documentation** covering all essential database concepts:
+This project implements advanced database techniques. See what techniques are used, how they're implemented, and where they're located in the code:
 
-### 🗄️ Core Database Documentation
+### 🗄️ Database Techniques & Implementation
 
-| Topic                  | Documentation                                                 | Description                                      |
-| ---------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
-| **Schema**             | [Database Schema](docs/database/schema.md)                    | Complete ERD, table structures, relationships    |
-| **Normalization**      | [Normalization (3NF)](docs/database/normalization.md)         | Database normalization principles and examples   |
-| **Constraints**        | [Constraints & Indexes](docs/database/constraints-indexes.md) | PK, FK, CHECK, UNIQUE constraints                |
-| **Indexes**            | [Constraints & Indexes](docs/database/constraints-indexes.md) | Performance optimization with strategic indexing |
-| **Migrations**         | [Migrations](docs/database/migrations.md)                     | Alembic migration guide and best practices       |
-| **Transactions**       | [Transactions](docs/database/transactions.md)                 | ACID properties and transaction management       |
-| **Query Optimization** | [Query Optimization](docs/database/query-optimization.md)     | Query processing and performance tuning          |
+| Technique               | What It Does                       | Where It's Used                                         | Code Example                                                  |
+| ----------------------- | ---------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------- |
+| **Schema (SQL DDL)**    | Defines database structure         | `backend/app/models/`, `backend/database/01_schema.sql` | `models/order.py`: `Column(Integer, primary_key=True)`        |
+| **Normalization (3NF)** | Eliminates data redundancy         | Table design in `backend/app/models/`                   | `models/employee.py`: Separate `managers`, `baristas` tables  |
+| **Constraints**         | Enforces data integrity            | `backend/database/02_constraints.sql`                   | `02_constraints.sql`: `CHECK (price > 0)`                     |
+| **Indexes**             | Improves query performance         | `backend/database/03_indexes.sql`                       | `03_indexes.sql`: `CREATE INDEX ix_orders_status`             |
+| **Transactions**        | Ensures ACID properties            | `backend/app/repositories/order_repository.py`          | `order_repository.py`: `db.commit()` / `db.rollback()`        |
+| **Query Optimization**  | Reduces queries with eager loading | `backend/app/repositories/*.py`                         | `order_repository.py`: `.options(joinedload(Order.customer))` |
+| **Migrations**          | Manages schema versioning          | `backend/alembic/versions/`                             | `alembic/versions/`: Migration files                          |
+
+**📖 Complete documentation with code examples:** [Database Documentation](docs/README.md)
 
 ### 📖 Additional Documentation
 
@@ -97,17 +99,55 @@ This project includes **comprehensive database documentation** covering all esse
 
 ---
 
-## 🎯 Database Techniques Demonstrated
+## 🎯 Database Techniques Usage Examples
 
-| Technique               | Status | Documentation                                             |
-| ----------------------- | ------ | --------------------------------------------------------- |
-| **Normalization (3NF)** | ✅     | [Normalization Guide](docs/database/normalization.md)     |
-| **SQL DDL**             | ✅     | [Schema Documentation](docs/database/schema.md)           |
-| **Constraints**         | ✅     | [Constraints Guide](docs/database/constraints-indexes.md) |
-| **Indexes**             | ✅     | [Indexes Guide](docs/database/constraints-indexes.md)     |
-| **Transactions**        | ✅     | [Transactions Guide](docs/database/transactions.md)       |
-| **Query Optimization**  | ✅     | [Optimization Guide](docs/database/query-optimization.md) |
-| **Physical Storage**    | ✅     | [Schema & Optimization](docs/database/)                   |
+### Transactions
+
+**File:** `backend/app/repositories/order_repository.py`
+
+```python
+def create(self, order_data: OrderCreate):
+    try:
+        order = Order(...)
+        self.db.add(order)
+        self.db.flush()
+        # Create order details and payment
+        self.db.commit()  # All or nothing
+    except Exception:
+        self.db.rollback()  # Rollback on error
+```
+
+### Query Optimization
+
+**File:** `backend/app/repositories/order_repository.py`
+
+```python
+def get(self, order_id: int):
+    return self.db.query(Order).options(
+        joinedload(Order.customer),  # Prevents N+1 queries
+        selectinload(Order.order_details)
+    ).first()
+```
+
+### Constraints
+
+**File:** `backend/database/02_constraints.sql`
+
+```sql
+ALTER TABLE menu_items
+    ADD CONSTRAINT check_price_positive CHECK (price > 0);
+```
+
+### Indexes
+
+**File:** `backend/database/03_indexes.sql`
+
+```sql
+CREATE INDEX idx_menu_item_category_available
+    ON menu_items(category, is_available);
+```
+
+**📖 See [docs/README.md](docs/README.md) for complete implementation details with all code examples.**
 
 ---
 
@@ -163,26 +203,13 @@ coffee-shop-management/
 - **[🔧 Installation Guide](docs/setup.md)** - Detailed setup instructions
 - **[🔌 API Reference](docs/api.md)** - Complete API documentation
 
-### Database Learning Resources
+### Database Implementation Details
 
-- **[🔷 Normalization](docs/database/normalization.md)** - 3NF principles
-- **[🔒 Constraints & Indexes](docs/database/constraints-indexes.md)** - Database constraints
-- **[🔄 Migrations](docs/database/migrations.md)** - Alembic guide
-- **[⚡ Transactions](docs/database/transactions.md)** - ACID properties
-- **[🚀 Query Optimization](docs/database/query-optimization.md)** - Performance tuning
-
----
-
-## 🎓 Learning Resources
-
-This project serves as a **comprehensive database learning resource** with:
-
-- ✅ Complete documentation covering all database concepts
-- ✅ Real-world implementation of database techniques
-- ✅ Detailed explanations with examples and best practices
-- ✅ Production-ready code demonstrating proper database design
-
-**Perfect for:** Database course projects, learning DBMS, understanding relational database design, studying optimization techniques.
+- **[🔷 Normalization](docs/database/normalization.md)** - How 3NF is implemented in table design
+- **[🔒 Constraints & Indexes](docs/database/constraints-indexes.md)** - Where constraints and indexes are defined
+- **[🔄 Migrations](docs/database/migrations.md)** - How schema changes are managed
+- **[⚡ Transactions](docs/database/transactions.md)** - Transaction usage in order creation
+- **[🚀 Query Optimization](docs/database/query-optimization.md)** - Eager loading and query optimization techniques
 
 ---
 

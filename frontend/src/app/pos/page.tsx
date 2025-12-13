@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { ShoppingBag, Coffee, Search, X } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import ProductCard from "@/components/menu/ProductCard";
@@ -10,18 +10,17 @@ import { useMenuItems } from "@/lib/hooks/useMenuItems";
 import { useCreateOrder } from "@/lib/hooks/useOrders";
 import { OrderCreate } from "@/types";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-
-const CATEGORIES = [
-  { id: "all", name: "All" },
-  { id: "Coffee", name: "Coffee" },
-  { id: "Non-Coffee", name: "Non-Coffee" },
-  { id: "Bakery", name: "Bakery" },
-];
+import { useDebounce } from "@/utils/debounce";
+import { filterMenuItems, getCategories } from "@/utils/filter";
 
 function POSPageContent() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [displayedItems, setDisplayedItems] = useState<number>(20); // Virtual scrolling limit
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  
   const { menuItems, isLoading } = useMenuItems(true);
   const {
     cart,
@@ -33,13 +32,58 @@ function POSPageContent() {
   } = useCart();
   const { createOrder } = useCreateOrder();
 
+  // Debounce search to reduce filtering operations
+  const debouncedSearch = useDebounce(search, 300);
+
+  // Get dynamic categories from menu items
+  const categories = useMemo(() => {
+    const cats = getCategories(menuItems);
+    return [
+      { id: "all", name: "All" },
+      ...cats.map((cat) => ({ id: cat, name: cat })),
+    ];
+  }, [menuItems]);
+
+  // Optimized filtering with single-pass algorithm
   const filteredItems = useMemo(() => {
-    return menuItems.filter(
-      (item) =>
-        (activeCategory === "all" || item.category === activeCategory) &&
-        item.name.toLowerCase().includes(search.toLowerCase())
+    return filterMenuItems(menuItems, activeCategory, debouncedSearch);
+  }, [menuItems, activeCategory, debouncedSearch]);
+
+  // Virtual scrolling - only render visible items + buffer
+  const visibleItems = useMemo(() => {
+    return filteredItems.slice(0, displayedItems);
+  }, [filteredItems, displayedItems]);
+
+  // Reset displayed items when filters change
+  useEffect(() => {
+    setDisplayedItems(20);
+  }, [activeCategory, debouncedSearch]);
+
+  // Intersection Observer for infinite scroll (memory efficient)
+  useEffect(() => {
+    if (isLoading || displayedItems >= filteredItems.length) {
+      return;
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setDisplayedItems((prev) => Math.min(prev + 20, filteredItems.length));
+        }
+      },
+      { threshold: 0.1 }
     );
-  }, [menuItems, activeCategory, search]);
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current && loadMoreRef.current) {
+        observerRef.current.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [isLoading, displayedItems, filteredItems.length]);
 
   const subtotal = useMemo(() => getTotal(), [getTotal]);
   const total = subtotal;
@@ -122,7 +166,7 @@ function POSPageContent() {
 
           {/* Categories */}
           <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
@@ -139,24 +183,51 @@ function POSPageContent() {
           </div>
         </header>
 
-        {/* Grid */}
+        {/* Grid with Virtual Scrolling */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pt-0">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-stone-400">Loading menu...</div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 pb-20 lg:pb-8">
-              <AnimatePresence>
-                {filteredItems.map((item) => (
-                  <ProductCard
-                    key={item.item_id}
-                    item={item}
-                    onAdd={addToCart}
-                  />
-                ))}
-              </AnimatePresence>
+          ) : filteredItems.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Coffee size={48} className="mx-auto mb-4 text-stone-300" />
+                <p className="text-stone-400">No items found</p>
+                <p className="text-stone-300 text-sm mt-1">
+                  Try adjusting your search or category filter
+                </p>
+              </div>
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 pb-20 lg:pb-8">
+                <AnimatePresence mode="popLayout">
+                  {visibleItems.map((item) => (
+                    <ProductCard
+                      key={item.item_id}
+                      item={item}
+                      onAdd={addToCart}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+              {/* Load more trigger (invisible) */}
+              {displayedItems < filteredItems.length && (
+                <div
+                  ref={loadMoreRef}
+                  className="h-20 flex items-center justify-center"
+                >
+                  <div className="text-stone-400 text-sm">
+                    Loading more items...
+                  </div>
+                </div>
+              )}
+              {/* Results count */}
+              <div className="text-center py-4 text-stone-400 text-sm">
+                Showing {visibleItems.length} of {filteredItems.length} items
+              </div>
+            </>
           )}
         </div>
       </div>
