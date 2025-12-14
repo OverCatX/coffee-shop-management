@@ -29,7 +29,11 @@ def restock_ingredient(
 
 
 @router.get("/menu-item/{item_id}/availability", response_model=Dict)
-def check_menu_item_availability(item_id: int, db: Session = Depends(get_db)):
+def check_menu_item_availability(
+    item_id: int, 
+    quantity: int = Query(1, ge=1, description="Quantity of menu items to check"),
+    db: Session = Depends(get_db)
+):
     """Check if a menu item can be made based on ingredient stock"""
     menu_item_repo = MenuItemRepository(db)
     menu_item = menu_item_repo.get(item_id)
@@ -52,6 +56,10 @@ def check_menu_item_availability(item_id: int, db: Session = Depends(get_db)):
 
     for recipe_item in recipe_items:
         inventory = inventory_repo.get_by_ingredient(recipe_item.ingredient_id)
+        
+        # Calculate total required based on quantity
+        base_required = float(recipe_item.amount_required)
+        total_required = base_required * quantity
 
         if not inventory:
             availability["can_make"] = False
@@ -59,7 +67,7 @@ def check_menu_item_availability(item_id: int, db: Session = Depends(get_db)):
                 {
                     "ingredient_id": recipe_item.ingredient_id,
                     "ingredient_name": recipe_item.ingredient.name,
-                    "required": float(recipe_item.amount_required),
+                    "required": total_required,
                     "unit": recipe_item.unit,
                     "available": 0,
                 }
@@ -68,7 +76,7 @@ def check_menu_item_availability(item_id: int, db: Session = Depends(get_db)):
                 {
                     "ingredient_id": recipe_item.ingredient_id,
                     "ingredient_name": recipe_item.ingredient.name,
-                    "required": float(recipe_item.amount_required),
+                    "required": total_required,
                     "available": 0,
                     "unit": recipe_item.unit,
                     "status": "missing",
@@ -76,15 +84,14 @@ def check_menu_item_availability(item_id: int, db: Session = Depends(get_db)):
             )
         else:
             available_qty = float(inventory.quantity)
-            required_qty = float(recipe_item.amount_required)
 
-            if available_qty < required_qty:
+            if available_qty < total_required:
                 availability["can_make"] = False
                 availability["missing_ingredients"].append(
                     {
                         "ingredient_id": recipe_item.ingredient_id,
                         "ingredient_name": recipe_item.ingredient.name,
-                        "required": required_qty,
+                        "required": total_required,
                         "unit": recipe_item.unit,
                         "available": available_qty,
                     }
@@ -93,7 +100,7 @@ def check_menu_item_availability(item_id: int, db: Session = Depends(get_db)):
                     {
                         "ingredient_id": recipe_item.ingredient_id,
                         "ingredient_name": recipe_item.ingredient.name,
-                        "required": required_qty,
+                        "required": total_required,
                         "available": available_qty,
                         "unit": recipe_item.unit,
                         "status": "insufficient",
@@ -104,7 +111,7 @@ def check_menu_item_availability(item_id: int, db: Session = Depends(get_db)):
                     {
                         "ingredient_id": recipe_item.ingredient_id,
                         "ingredient_name": recipe_item.ingredient.name,
-                        "required": required_qty,
+                        "required": total_required,
                         "unit": recipe_item.unit,
                         "available": available_qty,
                         "min_threshold": float(inventory.min_threshold),
@@ -114,7 +121,7 @@ def check_menu_item_availability(item_id: int, db: Session = Depends(get_db)):
                     {
                         "ingredient_id": recipe_item.ingredient_id,
                         "ingredient_name": recipe_item.ingredient.name,
-                        "required": required_qty,
+                        "required": total_required,
                         "available": available_qty,
                         "unit": recipe_item.unit,
                         "status": "low_stock",
@@ -125,7 +132,7 @@ def check_menu_item_availability(item_id: int, db: Session = Depends(get_db)):
                     {
                         "ingredient_id": recipe_item.ingredient_id,
                         "ingredient_name": recipe_item.ingredient.name,
-                        "required": required_qty,
+                        "required": total_required,
                         "available": available_qty,
                         "unit": recipe_item.unit,
                         "status": "available",

@@ -29,6 +29,7 @@ export interface Order {
   customer_id?: number;
   order_date: string;
   total_amount: number;
+  payment_amount?: number; // Actual amount paid after discount
   status: 'pending' | 'completed' | 'cancelled';
   created_at: string;
   updated_at: string;

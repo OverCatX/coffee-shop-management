@@ -33,7 +33,7 @@ export const useCreateIngredient = () => {
           error: 'Failed to create ingredient',
         }
       );
-      mutate('ingredients');
+      mutate('ingredients', undefined, { revalidate: true });
       return newIngredient;
     } catch (error) {
       throw error;
@@ -55,7 +55,7 @@ export const useUpdateIngredient = () => {
             error: 'Failed to update ingredient',
           }
         );
-        mutate('ingredients');
+        mutate('ingredients', undefined, { revalidate: true });
         return updated;
       } catch (error) {
         throw error;
@@ -78,7 +78,7 @@ export const useDeleteIngredient = () => {
           error: 'Failed to delete ingredient',
         }
       );
-      mutate('ingredients');
+      mutate('ingredients', undefined, { revalidate: true });
     } catch (error) {
       throw error;
     }

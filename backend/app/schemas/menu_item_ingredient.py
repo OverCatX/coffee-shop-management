@@ -13,12 +13,12 @@ class MenuItemIngredientBase(BaseModel):
 class MenuItemIngredientCreate(BaseModel):
     ingredient_id: int
     amount_required: Decimal = Field(..., gt=0)
-    unit: str = Field(..., min_length=1, max_length=20)
+    unit: str = Field(..., min_length=1, max_length=20, description="Unit of measurement (e.g., g, ml, pieces). Should match ingredient unit for consistency.")
 
 
 class MenuItemIngredientUpdate(BaseModel):
     amount_required: Optional[Decimal] = Field(None, gt=0)
-    unit: Optional[str] = Field(None, min_length=1, max_length=20)
+    unit: Optional[str] = Field(None, min_length=1, max_length=20, description="Unit of measurement. If not provided, keeps existing unit.")
 
 
 class IngredientInfo(BaseModel):

@@ -66,10 +66,14 @@ const stockApi = {
   },
 
   checkMenuItemAvailability: async (
-    itemId: number
+    itemId: number,
+    quantity: number = 1
   ): Promise<StockAvailability> => {
     const { data } = await apiClient.get<StockAvailability>(
-      `/stock/menu-item/${itemId}/availability`
+      `/stock/menu-item/${itemId}/availability`,
+      {
+        params: { quantity },
+      }
     );
     return data;
   },

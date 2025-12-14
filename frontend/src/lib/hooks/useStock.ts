@@ -4,10 +4,10 @@ import { stockApi, StockAvailability, OrderAvailability } from '@/lib/api/stock'
 import { mutate } from 'swr';
 import { showToast } from '@/utils/toast';
 
-export const useMenuItemAvailability = (itemId: number | null) => {
+export const useMenuItemAvailability = (itemId: number | null, quantity: number = 1) => {
   const { data, error, isLoading } = useSWR<StockAvailability>(
-    itemId ? ['stock', 'menu-item', itemId] : null,
-    () => stockApi.checkMenuItemAvailability(itemId!),
+    itemId ? ['stock', 'menu-item', itemId, quantity] : null,
+    () => stockApi.checkMenuItemAvailability(itemId!, quantity),
     {
       revalidateOnFocus: false,
       refreshInterval: 5000, // Refresh every 5 seconds

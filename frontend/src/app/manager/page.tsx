@@ -23,6 +23,21 @@ function ManagerPageContent() {
   const { menuItems } = useMenuItems();
   const { customers } = useAllCustomers(); // Get all customers for stats
 
+  // Format date and time
+  const formatDateTime = (dateString: string): { date: string; time: string } => {
+    const date = new Date(dateString);
+    const dateStr = date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+    const timeStr = date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return { date: dateStr, time: timeStr };
+  };
+
   const stats = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
     const yesterday = new Date(Date.now() - 86400000)
@@ -33,11 +48,11 @@ function ManagerPageContent() {
     const yesterdayOrders = orders.filter((o) => o.order_date === yesterday);
 
     const todayRevenue = todayOrders.reduce(
-      (sum, o) => sum + Number(o.total_amount),
+      (sum, o) => sum + Number(o.payment_amount || o.total_amount),
       0
     );
     const yesterdayRevenue = yesterdayOrders.reduce(
-      (sum, o) => sum + Number(o.total_amount),
+      (sum, o) => sum + Number(o.payment_amount || o.total_amount),
       0
     );
 
@@ -59,7 +74,7 @@ function ManagerPageContent() {
 
     const totalRevenue = orders
       .filter((o) => o.status === "completed")
-      .reduce((sum, o) => sum + Number(o.total_amount), 0);
+      .reduce((sum, o) => sum + Number(o.payment_amount || o.total_amount), 0);
 
     const avgOrderValue =
       completedOrders > 0 ? totalRevenue / completedOrders : 0;
@@ -215,37 +230,41 @@ function ManagerPageContent() {
               </h2>
               <div className="space-y-2">
                 {orders.slice(0, 5).length > 0 ? (
-                  orders.slice(0, 5).map((order) => (
-                    <div
-                      key={order.order_id}
-                      className="flex items-center justify-between p-3 bg-stone-50 rounded-lg border border-stone-100 hover:bg-stone-100 transition-colors"
-                    >
-                      <div>
-                        <p className="font-medium text-stone-800">
-                          Order #{order.order_id}
-                        </p>
-                        <p className="text-xs text-stone-500">
-                          {order.order_date}
-                        </p>
+                  orders.slice(0, 5).map((order) => {
+                    const { date, time } = formatDateTime(order.created_at);
+                    return (
+                      <div
+                        key={order.order_id}
+                        className="flex items-center justify-between p-3 bg-stone-50 rounded-lg border border-stone-100 hover:bg-stone-100 transition-colors"
+                      >
+                        <div>
+                          <p className="font-medium text-stone-800">
+                            Order #{order.order_id}
+                          </p>
+                          <div className="text-xs text-stone-500">
+                            <div className="font-medium">{date}</div>
+                            <div>{time}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-stone-900">
+                            ฿{Number(order.payment_amount || order.total_amount).toFixed(2)}
+                          </p>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded ${
+                              order.status === "completed"
+                                ? "bg-green-100 text-green-700"
+                                : order.status === "pending"
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {order.status}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-stone-900">
-                          ฿{Number(order.total_amount).toFixed(2)}
-                        </p>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded ${
-                            order.status === "completed"
-                              ? "bg-green-100 text-green-700"
-                              : order.status === "pending"
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="text-center py-6 text-stone-400 text-sm">
                     No orders yet

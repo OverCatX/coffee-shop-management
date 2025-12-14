@@ -68,12 +68,22 @@ def add_ingredient_to_recipe(
     if not ingredient:
         raise HTTPException(status_code=404, detail="Ingredient not found")
 
+    # Normalize and validate unit
+    unit = recipe_item.unit.strip() if recipe_item.unit else ingredient.unit
+    if not unit:
+        unit = ingredient.unit
+    
+    # Warn if unit doesn't match ingredient unit (but allow it for flexibility)
+    if unit.lower() != ingredient.unit.lower():
+        # Log warning but allow - some recipes may use different units
+        pass
+
     repo = MenuItemIngredientRepository(db)
     return repo.create(
         item_id=item_id,
         ingredient_id=recipe_item.ingredient_id,
         amount_required=recipe_item.amount_required,
-        unit=recipe_item.unit,
+        unit=unit,
     )
 
 
@@ -88,12 +98,23 @@ def update_recipe_ingredient(
     db: Session = Depends(get_db),
 ):
     """Update ingredient amount in recipe"""
+    # Get ingredient to validate unit
+    ingredient_repo = IngredientRepository(db)
+    ingredient = ingredient_repo.get(ingredient_id)
+    
+    # Normalize unit if provided
+    unit = None
+    if recipe_item.unit is not None:
+        unit = recipe_item.unit.strip()
+        if not unit and ingredient:
+            unit = ingredient.unit
+    
     repo = MenuItemIngredientRepository(db)
     updated = repo.update(
         item_id=item_id,
         ingredient_id=ingredient_id,
         amount_required=recipe_item.amount_required,
-        unit=recipe_item.unit,
+        unit=unit,
     )
     if not updated:
         raise HTTPException(status_code=404, detail="Recipe item not found")

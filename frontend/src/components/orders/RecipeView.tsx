@@ -14,7 +14,7 @@ interface RecipeViewProps {
 
 function RecipeView({ menuItem, quantity = 1, onClose }: RecipeViewProps) {
   const { recipeItems, isLoading } = useRecipeByMenuItem(menuItem.item_id);
-  const { availability } = useMenuItemAvailability(menuItem.item_id);
+  const { availability } = useMenuItemAvailability(menuItem.item_id, quantity);
 
   const getStatusColor = (status: string) => {
     switch (status) {

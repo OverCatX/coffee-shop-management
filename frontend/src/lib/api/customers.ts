@@ -45,6 +45,11 @@ const customersApi = {
     return data;
   },
 
+  getByPhone: async (phone: string): Promise<Customer> => {
+    const { data } = await apiClient.get<Customer>(`/customers/phone/${phone}`);
+    return data;
+  },
+
   create: async (customer: CustomerCreate): Promise<Customer> => {
     const { data } = await apiClient.post<Customer>('/customers', customer);
     return data;

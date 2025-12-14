@@ -7,6 +7,8 @@ from app.models.order import Order, OrderDetail
 from app.models.menu_item import MenuItem
 from app.models.payment import Payment
 from app.schemas.order import OrderCreate, OrderUpdate, OrderDetailCreate
+from app.repositories.menu_item_ingredient_repository import MenuItemIngredientRepository
+from app.repositories.inventory_repository import InventoryRepository
 from app.core.logging import logger
 
 
@@ -31,7 +33,8 @@ class OrderRepository:
         return self.db.query(Order).filter(
             Order.is_deleted == False
         ).options(
-            joinedload(Order.customer)
+            joinedload(Order.customer),
+            selectinload(Order.payments)
         ).order_by(Order.order_date.desc()).offset(skip).limit(limit).all()
 
     def get_by_customer(self, customer_id: int, skip: int = 0, limit: int = 100) -> List[Order]:
@@ -42,7 +45,8 @@ class OrderRepository:
                 Order.is_deleted == False
             )
         ).options(
-            selectinload(Order.order_details).joinedload(OrderDetail.menu_item)
+            selectinload(Order.order_details).joinedload(OrderDetail.menu_item),
+            selectinload(Order.payments)
         ).order_by(Order.order_date.desc()).offset(skip).limit(limit).all()
 
     def get_by_status(self, status: str, skip: int = 0, limit: int = 100) -> List[Order]:
@@ -54,7 +58,8 @@ class OrderRepository:
             )
         ).options(
             joinedload(Order.customer),
-            selectinload(Order.order_details).joinedload(OrderDetail.menu_item)
+            selectinload(Order.order_details).joinedload(OrderDetail.menu_item),
+            selectinload(Order.payments)
         ).order_by(Order.order_date.desc()).offset(skip).limit(limit).all()
 
     def get_by_date_range(self, start_date: date, end_date: date, skip: int = 0, limit: int = 100) -> List[Order]:
@@ -66,7 +71,8 @@ class OrderRepository:
                 Order.is_deleted == False
             )
         ).options(
-            joinedload(Order.customer)
+            joinedload(Order.customer),
+            selectinload(Order.payments)
         ).order_by(Order.order_date.desc()).offset(skip).limit(limit).all()
 
     def create(self, order_data: OrderCreate) -> Optional[Order]:
@@ -156,11 +162,77 @@ class OrderRepository:
         return order
 
     def update_status(self, order_id: int, status: str) -> Optional[Order]:
-        """Update order status"""
+        """Update order status and deduct stock when completing order"""
         order = self.get(order_id)
         if not order:
             return None
         
+        # If completing order, deduct stock from inventory
+        if status == 'completed' and order.status != 'completed':
+            try:
+                # Get order details with menu items
+                order_details = order.order_details
+                if not order_details:
+                    logger.warning(f"Order {order_id} has no order details")
+                else:
+                    # Initialize repositories
+                    recipe_repo = MenuItemIngredientRepository(self.db)
+                    inventory_repo = InventoryRepository(self.db)
+                    
+                    # Deduct stock for each order detail
+                    for detail in order_details:
+                        item_id = detail.item_id
+                        quantity = detail.quantity
+                        
+                        # Get recipe for this menu item
+                        recipe_items = recipe_repo.get_by_menu_item(item_id)
+                        
+                        if not recipe_items:
+                            logger.warning(f"Menu item {item_id} has no recipe defined")
+                            continue
+                        
+                        # Deduct stock for each ingredient in the recipe
+                        for recipe_item in recipe_items:
+                            ingredient_id = recipe_item.ingredient_id
+                            amount_required = recipe_item.amount_required
+                            
+                            # Calculate total amount needed (amount per item * quantity)
+                            total_amount_needed = amount_required * Decimal(str(quantity))
+                            
+                            # Check if inventory exists and has enough stock
+                            inventory = inventory_repo.get_by_ingredient(ingredient_id)
+                            if not inventory:
+                                raise ValueError(
+                                    f"Insufficient stock: Ingredient {ingredient_id} not found in inventory"
+                                )
+                            
+                            if inventory.quantity < total_amount_needed:
+                                raise ValueError(
+                                    f"Insufficient stock: Ingredient {ingredient_id} "
+                                    f"has {inventory.quantity} but needs {total_amount_needed}"
+                                )
+                            
+                            # Deduct from inventory (negative value to subtract)
+                            inventory_repo.update_quantity(
+                                ingredient_id=ingredient_id,
+                                quantity_change=-total_amount_needed,  # Negative to deduct
+                                employee_id=None  # System deduction
+                            )
+                            
+                            logger.info(
+                                f"Deducted {total_amount_needed} of ingredient {ingredient_id} "
+                                f"for {quantity}x menu item {item_id} (order {order_id})"
+                            )
+                    
+                    logger.info(f"Stock deducted for order {order_id}")
+                    
+            except Exception as e:
+                logger.error(f"Error deducting stock for order {order_id}: {str(e)}")
+                # Rollback transaction if stock deduction fails
+                self.db.rollback()
+                raise ValueError(f"Failed to deduct stock: {str(e)}")
+        
+        # Update order status
         order.status = status
         self.db.commit()
         self.db.refresh(order)

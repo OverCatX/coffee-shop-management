@@ -226,9 +226,33 @@ const OrderCard: React.FC<OrderCardProps> = memo(
           <div className="pt-3 border-t border-stone-200">
             <div className="flex justify-between items-center mb-3">
               <span className="text-sm font-medium text-stone-600">Total</span>
-              <span className="font-bold text-lg text-stone-900">
-                ฿{Number(order.total_amount).toFixed(2)}
-              </span>
+              {(() => {
+                const subtotal = order.order_details.reduce(
+                  (sum, detail) => sum + Number(detail.subtotal),
+                  0
+                );
+                const paymentAmount = Number(order.payment_amount || order.total_amount);
+                const hasDiscount = subtotal > paymentAmount;
+
+                return (
+                  <div className="text-right">
+                    {hasDiscount ? (
+                      <>
+                        <div className="text-stone-400 line-through text-sm">
+                          ฿{subtotal.toFixed(2)}
+                        </div>
+                        <div className="font-bold text-lg text-green-600">
+                          ฿{paymentAmount.toFixed(2)}
+                        </div>
+                      </>
+                    ) : (
+                      <span className="font-bold text-lg text-stone-900">
+                        ฿{paymentAmount.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
             {action && (
               <button

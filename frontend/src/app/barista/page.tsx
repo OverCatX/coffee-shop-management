@@ -6,6 +6,8 @@ import {
   Clock,
   CheckCircle2,
   AlertTriangle,
+  HelpCircle,
+  X,
 } from "lucide-react";
 import OrderCard from "@/components/orders/OrderCard";
 import { useOrdersByStatus, useUpdateOrderStatus } from "@/lib/hooks/useOrders";
@@ -36,6 +38,7 @@ function BaristaPageContent() {
   const [pendingPage, setPendingPage] = useState(1);
   const [completedPage, setCompletedPage] = useState(1);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showGuide, setShowGuide] = useState(false);
 
   // Update current time every second for timers
   useEffect(() => {
@@ -139,7 +142,64 @@ function BaristaPageContent() {
                 Manage order queue and track completed orders
               </p>
             </div>
+            <button
+              onClick={() => setShowGuide(!showGuide)}
+              className="p-2 rounded-lg bg-stone-100 hover:bg-stone-200 transition-colors"
+              title="Show Guide"
+            >
+              <HelpCircle size={20} className="text-stone-600" />
+            </button>
           </div>
+
+          {/* Quick Guide */}
+          {showGuide && (
+            <div className="mb-4 bg-gradient-to-r from-amber-50 to-amber-100 border-2 border-amber-300 rounded-xl p-4 sm:p-6">
+              <div className="flex items-start justify-between mb-4">
+                <h2 className="text-lg sm:text-xl font-bold text-stone-800 flex items-center gap-2">
+                  <ChefHat className="text-amber-600" size={20} />
+                  Quick Guide
+                </h2>
+                <button
+                  onClick={() => setShowGuide(false)}
+                  className="p-1 rounded hover:bg-amber-200 transition-colors"
+                >
+                  <X size={18} className="text-stone-600" />
+                </button>
+              </div>
+              
+              <div className="space-y-3 text-sm text-stone-700">
+                <div>
+                  <h3 className="font-bold text-red-600 mb-1 flex items-center gap-2">
+                    <AlertTriangle size={16} />
+                    URGENT = Order waiting over 5 minutes
+                  </h3>
+                  <p className="text-xs text-stone-600 ml-6">
+                    Orders with "URGENT" badge appear at the top → Process first
+                  </p>
+                </div>
+                
+                <div className="border-t border-amber-200 pt-3">
+                  <h3 className="font-bold text-stone-800 mb-2">Workflow:</h3>
+                  <ol className="list-decimal list-inside space-y-1.5 text-xs ml-2">
+                    <li>Check <strong>URGENT orders</strong> first (red badge on top)</li>
+                    <li>Verify <strong>Stock</strong> (if insufficient → notify Manager)</li>
+                    <li>Click <strong>"Recipe"</strong> to view ingredients (if needed)</li>
+                    <li>Complete the order</li>
+                    <li>Click <strong>"Mark as Completed"</strong> → Stock deducted automatically</li>
+                  </ol>
+                </div>
+
+                <div className="border-t border-amber-200 pt-3">
+                  <h3 className="font-bold text-stone-800 mb-2">Stock Status:</h3>
+                  <ul className="list-disc list-inside space-y-1 text-xs ml-2">
+                    <li><span className="text-red-600 font-semibold">Insufficient Stock</span> = Cannot Complete</li>
+                    <li><span className="text-green-600 font-semibold">Sufficient Stock</span> = Can Complete</li>
+                    <li>Click <strong>"Recipe"</strong> to view ingredient details</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Filter Tabs */}
           <div className="flex gap-2 mb-4">

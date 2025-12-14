@@ -10,7 +10,8 @@ export const useInventory = () => {
     () => inventoryApi.getAll(),
     {
       revalidateOnFocus: true,
-      refreshInterval: 10000, // Refresh every 10 seconds
+      refreshInterval: 5000, // Refresh every 5 seconds for live updates
+      dedupingInterval: 2000, // Reduce duplicate requests
     }
   );
 
@@ -50,8 +51,8 @@ export const useCreateInventory = () => {
           error: 'Failed to create inventory record',
         }
       );
-      mutate('inventory');
-      mutate('inventory-low-stock');
+      mutate('inventory', undefined, { revalidate: true });
+      mutate('inventory-low-stock', undefined, { revalidate: true });
       return newInventory;
     } catch (error) {
       throw error;
@@ -122,8 +123,8 @@ export const useDeleteInventory = () => {
           error: 'Failed to delete inventory record',
         }
       );
-      mutate('inventory');
-      mutate('inventory-low-stock');
+      mutate('inventory', undefined, { revalidate: true });
+      mutate('inventory-low-stock', undefined, { revalidate: true });
     } catch (error) {
       throw error;
     }

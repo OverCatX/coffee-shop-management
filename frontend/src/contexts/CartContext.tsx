@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
 import { CartItem, MenuItem } from "@/types";
 
 interface CartContextType {
@@ -21,7 +28,26 @@ const loadCartFromStorage = (): CartItem[] => {
   if (typeof window === "undefined") return [];
   try {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    if (!stored) return [];
+
+    const parsed = JSON.parse(stored);
+    // Validate that parsed data is an array
+    if (!Array.isArray(parsed)) return [];
+
+    // Validate each item has required fields
+    return parsed.filter((item): item is CartItem => {
+      return (
+        item &&
+        typeof item === "object" &&
+        typeof item.item_id === "number" &&
+        typeof item.name === "string" &&
+        typeof item.price === "number" &&
+        typeof item.quantity === "number" &&
+        typeof item.category === "string" &&
+        item.quantity > 0 &&
+        item.price > 0
+      );
+    });
   } catch {
     return [];
   }
@@ -47,13 +73,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart = useCallback((item: MenuItem) => {
     setCart((prev) => {
-      const existingIndex = prev.findIndex((cartItem) => cartItem.item_id === item.item_id);
+      const existingIndex = prev.findIndex(
+        (cartItem) => cartItem.item_id === item.item_id
+      );
       if (existingIndex >= 0) {
         // Update existing item - create new array with updated item
+        const existingItem = prev[existingIndex];
+        if (!existingItem) {
+          // Fallback: add new item if existing item not found
+          return [
+            ...prev,
+            {
+              item_id: item.item_id,
+              name: item.name,
+              price: Number(item.price),
+              quantity: 1,
+              image_url: item.image_url,
+              category: item.category,
+            },
+          ];
+        }
         const newCart = [...prev];
         newCart[existingIndex] = {
-          ...newCart[existingIndex],
-          quantity: newCart[existingIndex].quantity + 1,
+          ...existingItem,
+          quantity: existingItem.quantity + 1,
         };
         return newCart;
       }
