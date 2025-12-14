@@ -1,6 +1,6 @@
 # Coffee Shop Management System
 
-> Coffee Shop Management System (POS) is a comprehensive Point of Sale and management system designed for coffee shops. It provides a complete solution for managing orders, inventory, menu items, employees, customers, and business operations.
+Coffee Shop Management System (POS) is a comprehensive Point of Sale and management system designed for coffee shops. It provides a complete solution for managing orders, inventory, menu items, employees, customers, and business operations.
 
 ## 1. Project Overview & Features
 
