@@ -5,6 +5,7 @@ Guide to query optimization techniques used in the Coffee Shop Management System
 ## Query Optimization Overview
 
 Query optimization improves database performance by:
+
 - Reducing query execution time
 - Minimizing resource usage
 - Improving scalability
@@ -17,12 +18,13 @@ Query optimization improves database performance by:
 Indexes are automatically used by PostgreSQL query planner when beneficial.
 
 **Example:**
+
 ```sql
 -- Uses index on email
 SELECT * FROM employees WHERE email = 'john@example.com';
 
 -- Uses index on (category, is_available)
-SELECT * FROM menu_items 
+SELECT * FROM menu_items
 WHERE category = 'Coffee' AND is_available = true;
 ```
 
@@ -30,7 +32,7 @@ WHERE category = 'Coffee' AND is_available = true;
 
 ```sql
 -- View index usage
-EXPLAIN ANALYZE 
+EXPLAIN ANALYZE
 SELECT * FROM employees WHERE email = 'john@example.com';
 
 -- Output shows:
@@ -42,28 +44,32 @@ SELECT * FROM employees WHERE email = 'john@example.com';
 ### 1. Use Indexes Effectively
 
 **Good:**
+
 ```sql
 -- Uses index
 SELECT * FROM orders WHERE customer_id = 123;
 ```
 
 **Bad:**
+
 ```sql
 -- Cannot use index (function on indexed column)
 SELECT * FROM orders WHERE UPPER(status) = 'PENDING';
 ```
 
-### 2. Avoid SELECT *
+### 2. Avoid SELECT \*
 
 **Good:**
+
 ```sql
 -- Only fetch needed columns
-SELECT order_id, total_amount, status 
-FROM orders 
+SELECT order_id, total_amount, status
+FROM orders
 WHERE customer_id = 123;
 ```
 
 **Bad:**
+
 ```sql
 -- Fetches all columns unnecessarily
 SELECT * FROM orders WHERE customer_id = 123;
@@ -72,6 +78,7 @@ SELECT * FROM orders WHERE customer_id = 123;
 ### 3. Use JOINs Efficiently
 
 **Good:**
+
 ```sql
 -- Efficient JOIN with indexed columns
 SELECT o.order_id, c.name, o.total_amount
@@ -81,6 +88,7 @@ WHERE o.status = 'pending';
 ```
 
 **Bad:**
+
 ```sql
 -- Inefficient: Multiple queries
 SELECT * FROM orders WHERE status = 'pending';
@@ -91,14 +99,16 @@ SELECT * FROM customers WHERE customer_id = ?;
 ### 4. Limit Result Sets
 
 **Good:**
+
 ```sql
 -- Limit results
-SELECT * FROM orders 
-ORDER BY order_date DESC 
+SELECT * FROM orders
+ORDER BY order_date DESC
 LIMIT 10;
 ```
 
 **Bad:**
+
 ```sql
 -- Fetch all records
 SELECT * FROM orders ORDER BY order_date DESC;
@@ -107,16 +117,18 @@ SELECT * FROM orders ORDER BY order_date DESC;
 ### 5. Use Appropriate WHERE Clauses
 
 **Good:**
+
 ```sql
 -- Uses index
-SELECT * FROM menu_items 
+SELECT * FROM menu_items
 WHERE category = 'Coffee' AND is_available = true;
 ```
 
 **Bad:**
+
 ```sql
 -- Cannot use index effectively
-SELECT * FROM menu_items 
+SELECT * FROM menu_items
 WHERE category LIKE '%Coffee%';
 ```
 
@@ -190,6 +202,7 @@ LIMIT 10;
 ```
 
 **Output Analysis:**
+
 - **Seq Scan** - Full table scan (slow)
 - **Index Scan** - Uses index (fast)
 - **Hash Join** - Hash join algorithm
@@ -238,7 +251,7 @@ VACUUM FULL orders;
 REINDEX TABLE orders;
 
 -- Analyze index usage
-SELECT 
+SELECT
     schemaname,
     tablename,
     indexname,
@@ -255,8 +268,9 @@ ORDER BY idx_scan DESC;
 ### Pattern 1: Filtered Aggregation
 
 **Optimized:**
+
 ```sql
-SELECT 
+SELECT
     category,
     COUNT(*) as count,
     AVG(price) as avg_price
@@ -269,6 +283,7 @@ HAVING COUNT(*) > 5;
 ### Pattern 2: Pagination
 
 **Optimized:**
+
 ```sql
 SELECT * FROM orders
 ORDER BY order_date DESC
@@ -284,15 +299,17 @@ LIMIT 20;
 ### Pattern 3: Existence Check
 
 **Optimized:**
+
 ```sql
 -- Use EXISTS instead of COUNT
 SELECT EXISTS(
-    SELECT 1 FROM orders 
+    SELECT 1 FROM orders
     WHERE customer_id = 123
 );
 ```
 
 **Less Optimal:**
+
 ```sql
 -- Counts all rows
 SELECT COUNT(*) FROM orders WHERE customer_id = 123;
@@ -312,7 +329,7 @@ log_min_duration_statement = 1000  # Log queries > 1 second
 
 ```sql
 -- View query statistics
-SELECT 
+SELECT
     query,
     calls,
     total_time,
@@ -326,7 +343,7 @@ LIMIT 10;
 ## Best Practices
 
 1. **Use Indexes** - Index frequently queried columns
-2. **Avoid SELECT *** - Select only needed columns
+2. **Avoid SELECT \*** - Select only needed columns
 3. **Use LIMIT** - Limit result sets
 4. **Optimize JOINs** - Use appropriate JOIN types
 5. **Use EXPLAIN ANALYZE** - Analyze query plans
@@ -334,11 +351,69 @@ LIMIT 10;
 7. **Monitor Performance** - Track slow queries
 8. **Use Connection Pooling** - Reuse database connections
 
+## User Queries
+
+Common SQL queries for the Coffee Shop Management System. `<parameter>` indicates user input.
+
+### Employee Management
+
+```sql
+-- Get employee by email (login)
+SELECT emp_id, name, email, role, password_hash FROM employees WHERE email = '<email>' AND is_deleted = FALSE;
+
+-- Get all employees
+SELECT emp_id, name, role, email, phone FROM employees WHERE is_deleted = FALSE ORDER BY name;
+
+-- Create employee
+INSERT INTO employees (name, role, salary, email, phone, hire_date, password_hash) VALUES (...);
+```
+
+### Customer Management
+
+```sql
+-- Search customers
+SELECT customer_id, name, phone, email, loyalty_points FROM customers WHERE name ILIKE '%<search_term>%' AND is_deleted = FALSE;
+
+-- Update loyalty points
+UPDATE customers SET loyalty_points = <new_points>, updated_at = NOW() WHERE customer_id = <customer_id>;
+```
+
+### Order Management
+
+```sql
+-- Get order with customer
+SELECT o.*, c.name AS customer_name FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_id = <order_id>;
+
+-- Create order
+INSERT INTO orders (customer_id, order_date, total_amount, status) VALUES (...) RETURNING order_id;
+
+-- Add item to order
+INSERT INTO order_details (order_id, item_id, quantity, unit_price, subtotal) VALUES (...);
+```
+
+### Inventory Management
+
+```sql
+-- Get low stock items
+SELECT i.inventory_id, ing.name, i.quantity, i.min_threshold FROM inventory i JOIN ingredients ing ON i.ingredient_id = ing.ingredient_id WHERE i.quantity <= i.min_threshold;
+
+-- Update inventory
+UPDATE inventory SET quantity = <new_quantity>, employee_id = <employee_id>, last_updated = NOW() WHERE ingredient_id = <ingredient_id>;
+```
+
+### Analytics
+
+```sql
+-- Daily revenue
+SELECT order_date, SUM(total_amount) AS daily_revenue, COUNT(*) AS order_count FROM orders WHERE status = 'completed' AND order_date = '<date>' GROUP BY order_date;
+
+-- Top selling items
+SELECT mi.name, SUM(od.quantity) AS total_sold, SUM(od.subtotal) AS total_revenue FROM order_details od JOIN menu_items mi ON od.item_id = mi.item_id JOIN orders o ON od.order_id = o.order_id WHERE o.status = 'completed' GROUP BY mi.item_id, mi.name ORDER BY total_sold DESC LIMIT <limit>;
+```
+
 ## Related Documentation
 
-- [Database Schema](schema.md) - Schema design for optimization
+- [Database Schema](schema.md) - Schema design and constraints/indexes
 - [Normalization](normalization.md) - Database normalization principles
-- [Constraints & Indexes](constraints-indexes.md) - Index creation and usage
 - [Migrations](migrations.md) - Database migration guide and version control
-- [Transactions](transactions.md) - Transaction performance optimization
-
+- [Transactions](transactions.md) - Transaction management and ACID properties

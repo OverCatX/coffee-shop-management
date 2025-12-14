@@ -104,7 +104,7 @@ def downgrade():
 
 ```python
 def upgrade():
-    op.add_column('employees', 
+    op.add_column('employees',
         sa.Column('password_hash', sa.String(255), nullable=True)
     )
 
@@ -174,27 +174,10 @@ def downgrade():
 
 ## Migration History
 
-### View History
-
 ```bash
-# View all migrations
-alembic history
-
-# View verbose history
-alembic history --verbose
-
-# View specific revision
-alembic history <revision_id>
-```
-
-### Current Revision
-
-```bash
-# Check current database revision
-alembic current
-
-# Show current revision with verbose info
-alembic current --verbose
+alembic history          # View all migrations
+alembic current         # Check current revision
+alembic current --verbose  # Show detailed info
 ```
 
 ## Best Practices
@@ -257,13 +240,13 @@ For data migrations, use raw SQL:
 def upgrade():
     # Schema change
     op.add_column('employees', sa.Column('password_hash', sa.String(255)))
-    
+
     # Data migration
     connection = op.get_bind()
     connection.execute(
         sa.text("UPDATE employees SET password_hash = 'default_hash' WHERE password_hash IS NULL")
     )
-    
+
     # Make column NOT NULL after data migration
     op.alter_column('employees', 'password_hash', nullable=False)
 ```
@@ -275,6 +258,7 @@ def upgrade():
 **Issue:** Multiple developers create migrations simultaneously
 
 **Solution:**
+
 ```bash
 # Merge migrations
 alembic merge -m "Merge migrations" <revision1> <revision2>
@@ -285,6 +269,7 @@ alembic merge -m "Merge migrations" <revision1> <revision2>
 **Issue:** Database state doesn't match migration history
 
 **Solution:**
+
 ```bash
 # Stamp database to specific revision
 alembic stamp <revision_id>
@@ -298,6 +283,7 @@ alembic stamp head
 **Issue:** Migration fails partway through
 
 **Solution:**
+
 ```bash
 # Check current state
 alembic current
@@ -310,35 +296,20 @@ alembic stamp <revision_id>
 alembic upgrade head
 ```
 
-## Migration Scripts
-
-### Initial Migration
+## Common Commands
 
 ```bash
-# Create initial migration from models
-alembic revision --autogenerate -m "Initial migration"
-```
-
-### Add Column Migration
-
-```bash
-# After modifying model
-alembic revision --autogenerate -m "Add password_hash to employees"
-```
-
-### Data Migration
-
-```bash
-# For data-only changes
-alembic revision -m "Migrate existing data"
-# Then edit migration file to add data migration logic
+alembic revision --autogenerate -m "Description"  # Auto-generate from models
+alembic revision -m "Description"                 # Manual migration
+alembic upgrade head                              # Apply all pending
+alembic downgrade -1                              # Rollback one
+alembic stamp <revision_id>                       # Set database revision
 ```
 
 ## Related Documentation
 
 - [Database Schema](schema.md) - Complete schema documentation
 - [Normalization](normalization.md) - Database normalization principles
-- [Constraints & Indexes](constraints-indexes.md) - Creating constraints via migrations
+- [Database Schema](schema.md) - Constraints and indexes documentation
 - [Transactions](transactions.md) - Transaction management and ACID properties
 - [Query Optimization](query-optimization.md) - Query performance optimization techniques
-

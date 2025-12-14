@@ -106,133 +106,38 @@ def create_order_with_details(db: Session, order_data: OrderCreate):
 
 ### Order Creation
 
-**Scenario:** Create order with multiple items and payment
-
 ```python
 @transactional
 def create_order(db: Session, order_data: OrderCreate):
-    """
-    Creates an order with order details and payment.
-    All operations succeed or all fail.
-    """
-    # Calculate total
-    total = sum(item.subtotal for item in order_data.order_details)
-
-    # Create order header
-    order = Order(
-        customer_id=order_data.customer_id,
-        order_date=order_data.order_date,
-        total_amount=total,
-        status='pending'
-    )
+    """Create order with order details and payment. All operations succeed or all fail."""
+    order = Order(**order_data.dict())
     db.add(order)
     db.flush()  # Get order_id
 
-    # Create order details
     for detail_data in order_data.order_details:
-        order_detail = OrderDetail(
-            order_id=order.order_id,
-            item_id=detail_data.item_id,
-            quantity=detail_data.quantity,
-            unit_price=detail_data.unit_price,
-            subtotal=detail_data.subtotal
-        )
-        db.add(order_detail)
+        db.add(OrderDetail(order_id=order.order_id, **detail_data.dict()))
 
-    # Create payment
-    payment = Payment(
-        order_id=order.order_id,
-        payment_method=order_data.payment_method,
-        payment_amount=order_data.payment_amount
-    )
-    db.add(payment)
-
-    # Commit all changes
+    db.add(Payment(order_id=order.order_id, **payment_data.dict()))
     db.commit()
-    db.refresh(order)
     return order
 ```
 
 ### Inventory Update
 
-**Scenario:** Update inventory when order is completed
-
 ```python
 @transactional
 def complete_order(db: Session, order_id: int):
-    """
-    Completes an order and updates inventory.
-    Ensures inventory is sufficient before completing order.
-    """
-    # Get order with details
+    """Complete order and update inventory. Check inventory sufficiency first."""
     order = db.query(Order).filter(Order.order_id == order_id).first()
-
-    if not order:
-        raise ValueError("Order not found")
-
-    # Check inventory for all items
-    for detail in order.order_details:
-        inventory = db.query(Inventory).filter(
-            Inventory.ingredient_id == detail.item_id
-        ).first()
-
-        if inventory.quantity < detail.quantity:
-            raise ValueError(f"Insufficient inventory for item {detail.item_id}")
-
-    # Update inventory (within transaction)
-    for detail in order.order_details:
-        inventory = db.query(Inventory).filter(
-            Inventory.ingredient_id == detail.item_id
-        ).first()
-        inventory.quantity -= detail.quantity
-        inventory.last_updated = datetime.now()
-
+    # Check and update inventory for all items
     # Update order status
-    order.status = 'completed'
-
-    # Commit all changes
     db.commit()
     return order
 ```
 
-## Transaction Decorator
-
-Custom transaction decorator for automatic rollback:
-
-```python
-from functools import wraps
-from sqlalchemy.orm import Session
-
-def transactional(func):
-    """Decorator for automatic transaction management"""
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        # Find db session in args or kwargs
-        db = None
-        for arg in args:
-            if isinstance(arg, Session):
-                db = arg
-                break
-        if not db:
-            db = kwargs.get('db')
-
-        if not db:
-            raise ValueError("Database session not found")
-
-        try:
-            result = func(*args, **kwargs)
-            db.commit()
-            return result
-        except Exception as e:
-            db.rollback()
-            raise e
-
-    return wrapper
-```
-
 ## Error Handling
 
-### Rollback on Error
+Always use try/except with rollback:
 
 ```python
 def create_order(db: Session, order_data: OrderCreate):
@@ -243,22 +148,7 @@ def create_order(db: Session, order_data: OrderCreate):
         return order
     except Exception as e:
         db.rollback()  # Rollback on any error
-        logger.error(f"Error creating order: {e}")
         raise e
-```
-
-### Nested Transactions
-
-```python
-def process_order(db: Session, order_id: int):
-    # Outer transaction
-    order = db.query(Order).filter(Order.order_id == order_id).first()
-
-    # Nested operation (uses same transaction)
-    update_inventory(db, order)
-
-    # All commits together
-    db.commit()
 ```
 
 ## Isolation Levels
@@ -329,6 +219,6 @@ def update_with_retry(db: Session, func, max_retries=3):
 
 - [Database Schema](schema.md) - Complete schema documentation
 - [Normalization](normalization.md) - Database normalization principles
-- [Constraints & Indexes](constraints-indexes.md) - Data integrity constraints
+- [Database Schema](schema.md) - Constraints and indexes documentation
 - [Migrations](migrations.md) - Database migration guide and version control
 - [Query Optimization](query-optimization.md) - Transaction performance optimization

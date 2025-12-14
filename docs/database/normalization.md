@@ -81,107 +81,22 @@ employees (emp_id, name, email, role, salary, manager_bonus)
 
 ## Normalization Examples
 
-### Employee Management
+**Employee Management:** Single `employees` table with `role` field (no separate manager/barista tables).
 
-**Design Decision:** Single `employees` table with role field.
+**Menu Items ↔ Ingredients:** Junction table `menu_item_ingredients` for many-to-many relationship with `amount_required`.
 
-**Reasoning:**
+**Orders:** Separate `orders` (header) and `order_details` (line items) to prevent repeating order information.
 
-- All employee data in one table
-- Role is stored as a field in the employees table
-- Simpler structure without unnecessary table separation
-- Follows 3NF principles
+## Benefits
 
-**Structure:**
-
-```
-employees (emp_id, name, email, role, salary, ...)
-```
-
-### Menu Items and Ingredients
-
-**Design Decision:** Junction table `menu_item_ingredients` for many-to-many relationship.
-
-**Reasoning:**
-
-- Menu items can have multiple ingredients
-- Ingredients can be used in multiple menu items
-- Junction table stores relationship-specific data (amount_required)
-- Eliminates data duplication
-
-**Structure:**
-
-```
-menu_items (item_id, name, price, ...)
-    ↓
-menu_item_ingredients (item_id, ingredient_id, amount_required, unit)
-    ↓
-ingredients (ingredient_id, name, unit, ...)
-```
-
-### Orders and Order Details
-
-**Design Decision:** Separate `orders` (header) and `order_details` (line items).
-
-**Reasoning:**
-
-- Order header contains order-level information
-- Order details contain item-level information
-- Prevents repeating order information for each item
-- Follows 1NF and 2NF principles
-
-**Structure:**
-
-```
-orders (order_id, customer_id, order_date, total_amount, status, ...)
-    ↓
-order_details (order_id, item_id, quantity, unit_price, subtotal, ...)
-```
-
-## Benefits of Normalization
-
-### 1. Data Integrity
-
-- **No Redundancy:** Each piece of data stored once
-- **Consistency:** Updates propagate correctly
-- **Referential Integrity:** Foreign keys ensure relationships
-
-### 2. Storage Efficiency
-
-- **Reduced Storage:** No duplicate data
-- **Optimized Indexes:** Smaller indexes, faster queries
-
-### 3. Update Efficiency
-
-- **Single Update Point:** Update data in one place
-- **No Anomalies:** Insert, update, delete anomalies eliminated
-
-### 4. Query Performance
-
-- **Optimized Joins:** Proper relationships enable efficient joins
-- **Index Usage:** Normalized structure allows better indexing
+- **Data Integrity:** No redundancy, consistent updates, referential integrity
+- **Storage Efficiency:** Reduced storage, optimized indexes
+- **Update Efficiency:** Single update point, no anomalies
+- **Query Performance:** Optimized joins, better indexing
 
 ## Denormalization Considerations
 
-While the database follows 3NF, some denormalization may be considered for performance:
-
-### Calculated Fields
-
-**Example:** `order_details.subtotal = quantity * unit_price`
-
-**Decision:** Store calculated value for performance
-
-- Trade-off: Storage vs. calculation speed
-- Current design: Store `subtotal` for faster queries
-
-### Aggregated Data
-
-**Example:** `orders.total_amount` (sum of order_details)
-
-**Decision:** Store aggregated value
-
-- Trade-off: Consistency vs. query performance
-- Current design: Calculate on insert/update, store result
+Some calculated/aggregated fields stored for performance: `order_details.subtotal` (quantity × unit_price) and `orders.total_amount` (sum of order_details). Calculated on insert/update to maintain consistency.
 
 ## Normalization Checklist
 
@@ -193,10 +108,69 @@ While the database follows 3NF, some denormalization may be considered for perfo
 - [x] No redundant data storage
 - [x] Foreign keys properly defined
 
+## Functional Dependencies
+
+Functional dependencies (FDs) help understand data relationships and are essential for normalization.
+
+### Functional Dependency Notation
+
+- `A → B` means "A functionally determines B" or "B is functionally dependent on A"
+- If `A → B`, then for each value of A, there is exactly one value of B
+
+### Functional Dependencies by Table
+
+**employees:** `emp_id → all attributes`, `email → emp_id`, `phone → emp_id`
+
+**customers:** `customer_id → all attributes`, `phone → customer_id`, `email → customer_id`
+
+**ingredients:** `ingredient_id → all attributes`, `name → ingredient_id`
+
+**menu_items:** `item_id → all attributes`, `name → item_id`
+
+**menu_item_ingredients:** `(item_id, ingredient_id) → amount_required, unit` (composite key)
+
+**inventory:** `inventory_id → all attributes`
+
+**orders:** `order_id → all attributes`
+
+**order_details:** `(order_id, item_id) → quantity, unit_price, subtotal` (composite key)
+
+**payments:** `payment_id → all attributes`
+
+### Summary of Functional Dependencies
+
+| Table                   | Primary Key                | Key Functional Dependencies                                                  |
+| ----------------------- | -------------------------- | ---------------------------------------------------------------------------- |
+| `employees`             | `emp_id`                   | `emp_id → all attributes`, `email → emp_id`, `phone → emp_id`                |
+| `customers`             | `customer_id`              | `customer_id → all attributes`, `phone → customer_id`, `email → customer_id` |
+| `ingredients`           | `ingredient_id`            | `ingredient_id → all attributes`, `name → ingredient_id`                     |
+| `menu_items`            | `item_id`                  | `item_id → all attributes`, `name → item_id`                                 |
+| `menu_item_ingredients` | `(item_id, ingredient_id)` | `(item_id, ingredient_id) → amount_required, unit`                           |
+| `inventory`             | `inventory_id`             | `inventory_id → all attributes`                                              |
+| `orders`                | `order_id`                 | `order_id → all attributes`                                                  |
+| `order_details`         | `(order_id, item_id)`      | `(order_id, item_id) → quantity, unit_price, subtotal`                       |
+| `payments`              | `payment_id`               | `payment_id → all attributes`                                                |
+
+### Verification Against Normal Forms
+
+**First Normal Form (1NF) ✓**
+
+- All tables have atomic values (no repeating groups)
+- Junction tables used for many-to-many relationships
+
+**Second Normal Form (2NF) ✓**
+
+- All non-key attributes fully depend on the entire primary key
+- No partial dependencies in composite keys (e.g., `order_details` requires both `order_id` AND `item_id`)
+
+**Third Normal Form (3NF) ✓**
+
+- No transitive dependencies
+- Non-key attributes depend only on the primary key
+
 ## Related Documentation
 
 - [Database Schema](schema.md) - Complete schema documentation
-- [Constraints & Indexes](constraints-indexes.md) - Data integrity constraints
 - [Migrations](migrations.md) - Database migration guide and version control
 - [Transactions](transactions.md) - Transaction management and ACID properties
-- [Query Optimization](query-optimization.md) - Performance optimization techniques
+- [Query Optimization](query-optimization.md) - Performance optimization techniques and SQL queries

@@ -10,26 +10,9 @@ Complete documentation of the database schema, Entity-Relationship Diagram (ERD)
 
 ### employees
 
-**Purpose:** Stores all employee information for the coffee shop. Used for authentication and authorization based on role.
+**Purpose:** Employee information for authentication and role-based access control.
 
-**Usage:**
-
-- Login/authentication system (uses email + password_hash)
-- Access control based on role (Manager, Barista, Cashier)
-- Track employee information and work history
-
-**Columns:**
-
-- `emp_id`: Primary key to uniquely identify an employee
-- `name`: Employee name
-- `role`: Role (Manager, Barista, Cashier) used for access control
-- `salary`: Employee salary
-- `email`: Email address for login (UNIQUE)
-- `phone`: Phone number
-- `hire_date`: Date when employee was hired
-- `password_hash`: Password hashed with bcrypt for authentication
-- `created_at`, `updated_at`: Timestamps for audit trail
-- `is_deleted`: Soft delete flag
+**Key Columns:** `emp_id` (PK), `name`, `role`, `email` (UNIQUE), `password_hash`, `salary`
 
 | Column        | Type          | Constraints             | Description                      |
 | ------------- | ------------- | ----------------------- | -------------------------------- |
@@ -52,23 +35,9 @@ Complete documentation of the database schema, Entity-Relationship Diagram (ERD)
 
 ### customers
 
-**Purpose:** Stores customer information and loyalty points system.
+**Purpose:** Customer information and loyalty points tracking.
 
-**Usage:**
-
-- Manage customer data
-- Track loyalty points for promotions
-- Link with orders to view purchase history
-
-**Columns:**
-
-- `customer_id`: Primary key to uniquely identify a customer
-- `name`: Customer name
-- `phone`: Phone number (UNIQUE) for identification
-- `email`: Email address (UNIQUE) for contact
-- `loyalty_points`: Loyalty points that can be redeemed for promotions
-- `created_at`, `updated_at`: Timestamps for audit trail
-- `is_deleted`: Soft delete flag
+**Key Columns:** `customer_id` (PK), `name`, `phone` (UNIQUE), `email` (UNIQUE), `loyalty_points`
 
 | Column         | Type          | Constraints             | Description        |
 | -------------- | ------------- | ----------------------- | ------------------ |
@@ -88,26 +57,9 @@ Complete documentation of the database schema, Entity-Relationship Diagram (ERD)
 
 ### menu_items
 
-**Purpose:** Stores menu items catalog (coffee, beverages, desserts).
+**Purpose:** Menu items catalog with prices and availability.
 
-**Usage:**
-
-- Display menu for customers to choose from
-- Store prices and item details
-- Control visibility with `is_available`
-- Group items by `category`
-
-**Columns:**
-
-- `item_id`: Primary key to uniquely identify a menu item
-- `name`: Item name (UNIQUE) e.g., "Espresso", "Cappuccino"
-- `price`: Selling price
-- `category`: Category e.g., "Coffee", "Tea", "Bakery"
-- `description`: Item description
-- `image_url`: Image URL for the item
-- `is_available`: Whether the item is available for sale
-- `created_at`, `updated_at`: Timestamps for audit trail
-- `is_deleted`: Soft delete flag
+**Key Columns:** `item_id` (PK), `name` (UNIQUE), `price`, `category`, `is_available`
 
 | Column       | Type          | Constraints             | Description        |
 | ------------ | ------------- | ----------------------- | ------------------ |
@@ -131,21 +83,9 @@ Complete documentation of the database schema, Entity-Relationship Diagram (ERD)
 
 ### ingredients
 
-**Purpose:** Stores all ingredients used in the shop (e.g., coffee, milk, sugar).
+**Purpose:** Ingredients used in recipes and inventory.
 
-**Usage:**
-
-- Define ingredients available in the system
-- Link with `menu_item_ingredients` to specify recipes
-- Link with `inventory` to track stock
-
-**Columns:**
-
-- `ingredient_id`: Primary key to uniquely identify an ingredient
-- `name`: Ingredient name (UNIQUE) e.g., "Coffee Beans", "Milk"
-- `unit`: Unit of measurement e.g., "kg", "liter", "shot"
-- `created_at`, `updated_at`: Timestamps for audit trail
-- `is_deleted`: Soft delete flag
+**Key Columns:** `ingredient_id` (PK), `name` (UNIQUE), `unit`
 
 | Column        | Type         | Constraints             | Description         |
 | ------------- | ------------ | ----------------------- | ------------------- |
@@ -162,22 +102,9 @@ Complete documentation of the database schema, Entity-Relationship Diagram (ERD)
 
 ### menu_item_ingredients
 
-**Purpose:** Junction table linking menu items with ingredients (Many-to-Many). Stores recipe for each menu item.
+**Purpose:** Junction table for menu items ↔ ingredients (Many-to-Many). Stores recipes.
 
-**Usage:**
-
-- Specify which ingredients are needed for each menu item and how much
-- Calculate menu item cost
-- Check if there are enough ingredients to make a menu item
-
-**Columns:**
-
-- `item_id`: Foreign key → menu_items (the menu item)
-- `ingredient_id`: Foreign key → ingredients (the ingredient used)
-- `amount_required`: Amount required e.g., 0.02 kg, 0.12 liter
-- `unit`: Unit of measurement for amount_required
-- `created_at`, `updated_at`: Timestamps for audit trail
-- `is_deleted`: Soft delete flag
+**Key Columns:** `(item_id, ingredient_id)` (PK), `amount_required`, `unit`
 
 | Column          | Type          | Constraints                   | Description        |
 | --------------- | ------------- | ----------------------------- | ------------------ |
@@ -191,24 +118,9 @@ Complete documentation of the database schema, Entity-Relationship Diagram (ERD)
 
 ### inventory
 
-**Purpose:** Tracks ingredient stock in the shop. Used for inventory management and low stock alerts.
+**Purpose:** Tracks ingredient stock quantities and low stock alerts.
 
-**Usage:**
-
-- Track current quantity of ingredients
-- Alert when stock falls below `min_threshold`
-- Record who last updated the stock
-
-**Columns:**
-
-- `inventory_id`: Primary key to uniquely identify a record
-- `ingredient_id`: Foreign key → ingredients (the ingredient being tracked)
-- `quantity`: Current quantity in stock
-- `min_threshold`: Minimum level that triggers alerts (reorder point)
-- `employee_id`: Foreign key → employees (employee who last updated)
-- `last_updated`: Time when last updated
-- `created_at`, `updated_at`: Timestamps for audit trail
-- `is_deleted`: Soft delete flag
+**Key Columns:** `inventory_id` (PK), `ingredient_id` (FK), `quantity`, `min_threshold`, `employee_id` (FK)
 
 | Column        | Type          | Constraints                | Description           |
 | ------------- | ------------- | -------------------------- | --------------------- |
@@ -228,24 +140,9 @@ Complete documentation of the database schema, Entity-Relationship Diagram (ERD)
 
 ### orders
 
-**Purpose:** Stores order information (Order Header). Contains summary data for each order.
+**Purpose:** Order header with customer, date, total amount, and status.
 
-**Usage:**
-
-- Record customer orders
-- Track order status (pending/completed/cancelled)
-- Calculate total amount
-- Link with `order_details` to view items in the order
-
-**Columns:**
-
-- `order_id`: Primary key to uniquely identify an order
-- `customer_id`: Foreign key → customers (customer who placed order, nullable for walk-in customers)
-- `order_date`: Date when order was placed
-- `total_amount`: Total amount of the order
-- `status`: Order status (pending/completed/cancelled)
-- `created_at`, `updated_at`: Timestamps for audit trail
-- `is_deleted`: Soft delete flag
+**Key Columns:** `order_id` (PK), `customer_id` (FK, nullable), `order_date`, `total_amount`, `status`
 
 | Column       | Type          | Constraints             | Description                          |
 | ------------ | ------------- | ----------------------- | ------------------------------------ |
@@ -266,23 +163,9 @@ Complete documentation of the database schema, Entity-Relationship Diagram (ERD)
 
 ### order_details
 
-**Purpose:** Stores item details for each order (Order Line Items). One order can have multiple items.
+**Purpose:** Order line items with quantity, unit price, and subtotal.
 
-**Usage:**
-
-- Record items that customer ordered in each order
-- Store unit price and subtotal for each item
-- Calculate total amount of the order
-
-**Columns:**
-
-- `order_id`: Foreign key → orders (the order this item belongs to)
-- `item_id`: Foreign key → menu_items (the item ordered)
-- `quantity`: Quantity ordered
-- `unit_price`: Unit price at time of order (stored to prevent price changes)
-- `subtotal`: Subtotal for this item (quantity × unit_price)
-- `created_at`, `updated_at`: Timestamps for audit trail
-- `is_deleted`: Soft delete flag
+**Key Columns:** `(order_id, item_id)` (PK), `quantity`, `unit_price`, `subtotal`
 
 | Column     | Type          | Constraints                  | Description        |
 | ---------- | ------------- | ---------------------------- | ------------------ |
@@ -297,25 +180,9 @@ Complete documentation of the database schema, Entity-Relationship Diagram (ERD)
 
 ### payments
 
-**Purpose:** Records payment information for each order. Tracks payment status.
+**Purpose:** Payment records with method, amount, and status.
 
-**Usage:**
-
-- Record customer payments
-- Track payment status (pending/completed/failed)
-- Record payment method (cash, credit card, etc.)
-- Used for accounting and reporting
-
-**Columns:**
-
-- `payment_id`: Primary key to uniquely identify a payment
-- `order_id`: Foreign key → orders (the order being paid)
-- `payment_method`: Payment method e.g., "cash", "credit_card", "promptpay"
-- `amount`: Payment amount
-- `status`: Payment status (pending/completed/failed)
-- `payment_date`: Date and time when payment was made
-- `created_at`, `updated_at`: Timestamps for audit trail
-- `is_deleted`: Soft delete flag
+**Key Columns:** `payment_id` (PK), `order_id` (FK), `payment_method`, `amount`, `status`, `payment_date`
 
 | Column         | Type          | Constraints              | Description                       |
 | -------------- | ------------- | ------------------------ | --------------------------------- |
@@ -352,44 +219,92 @@ Complete documentation of the database schema, Entity-Relationship Diagram (ERD)
 
 - `menu_items` ↔ `ingredients` (via `menu_item_ingredients`)
 
-## Constraints Summary
+## Constraints & Indexes
 
-### Primary Keys
+### Constraints
 
-- All tables have primary keys
-- Composite keys used for junction tables
+Constraints ensure data integrity and enforce business rules at the database level.
 
-### Foreign Keys
+#### Primary Key Constraints
 
-- All foreign keys have `ON DELETE CASCADE` or appropriate action
-- Referential integrity enforced
+Every table has a primary key. Single column (e.g., `employees.emp_id`) or composite (e.g., `order_details (order_id, item_id)`).
 
-### Check Constraints
+#### Foreign Key Constraints
 
-- Price values must be > 0
-- Quantity values must be >= 0
-- Status values restricted to specific enums
+Foreign keys maintain referential integrity. Cascade behaviors: `ON DELETE CASCADE`, `ON DELETE SET NULL`, `ON DELETE RESTRICT`.
 
-### Unique Constraints
+#### Check Constraints
 
-- Employee email
-- Customer email and phone
-- Menu item name
-- Ingredient name
+Check constraints enforce domain rules and business logic.
 
-## Indexes Summary
+**All Check Constraints:**
 
-### Performance Indexes
+| Table                 | Constraint                        | Rule                                            |
+| --------------------- | --------------------------------- | ----------------------------------------------- |
+| menu_items            | check_price_positive              | price > 0                                       |
+| employees             | check_salary_positive             | salary > 0                                      |
+| inventory             | check_quantity_non_negative       | quantity >= 0                                   |
+| inventory             | check_threshold_non_negative      | min_threshold >= 0                              |
+| orders                | check_total_amount_non_negative   | total_amount >= 0                               |
+| orders                | check_status_valid                | status IN ('pending', 'completed', 'cancelled') |
+| order_details         | check_quantity_positive           | quantity > 0                                    |
+| order_details         | check_unit_price_non_negative     | unit_price >= 0                                 |
+| order_details         | check_subtotal_non_negative       | subtotal >= 0                                   |
+| payments              | check_payment_amount_positive     | payment_amount > 0                              |
+| customers             | check_loyalty_points_non_negative | loyalty_points >= 0                             |
+| menu_item_ingredients | check_amount_required_positive    | amount_required > 0                             |
 
-- Email indexes for fast lookups
-- Category and status indexes for filtering
-- Composite indexes for common query patterns
-- Foreign key indexes for join optimization
+#### Unique Constraints
+
+Unique constraints ensure no duplicate values in specified columns.
+
+**All Unique Constraints:**
+
+| Table       | Column(s) | Constraint Name        |
+| ----------- | --------- | ---------------------- |
+| employees   | email     | unique_employee_email  |
+| customers   | email     | unique_customer_email  |
+| customers   | phone     | unique_customer_phone  |
+| menu_items  | name      | unique_menu_item_name  |
+| ingredients | name      | unique_ingredient_name |
+
+#### Not Null Constraints
+
+Not null constraints ensure required fields always have values. Examples include `employees.name`, `employees.role`, `orders.order_date`, `orders.status`.
+
+### Indexes
+
+Indexes improve query performance by creating fast lookup structures.
+
+#### Primary Key Indexes
+
+Automatically created for all primary keys (e.g., `employees_pkey`, `orders_pkey`).
+
+#### Foreign Key Indexes
+
+Created for foreign key columns to optimize joins (e.g., `idx_orders_customer`, `idx_order_details_order`).
+
+#### Unique Indexes
+
+Created automatically for unique constraints (e.g., `unique_employee_email`, `unique_menu_item_name`).
+
+#### Composite Indexes
+
+Indexes on multiple columns for complex queries:
+
+- `idx_menu_item_category_available` on `menu_items(category, is_available)`
+- `idx_inventory_ingredient_quantity` on `inventory(ingredient_id, quantity)`
+- `idx_payment_order_status` on `payments(order_id, status)`
+
+#### Index Strategy
+
+**When to Create:** Foreign keys, frequently queried columns, join columns, ORDER BY columns, composite queries.
+
+**Maintenance:** Use `ANALYZE` and `REINDEX` periodically. Monitor usage with `pg_stat_user_indexes`.
 
 ## Related Documentation
 
-- [Normalization](normalization.md) - Database normalization principles and design decisions
-- [Constraints & Indexes](constraints-indexes.md) - Detailed constraint and index documentation
+- [Normalization](normalization.md) - Database normalization principles and functional dependencies
 - [Migrations](migrations.md) - Database migration guide and version control
 - [Transactions](transactions.md) - Transaction management and ACID properties
-- [Query Optimization](query-optimization.md) - Query performance optimization techniques
+- [Query Optimization](query-optimization.md) - Query performance optimization techniques and SQL queries
