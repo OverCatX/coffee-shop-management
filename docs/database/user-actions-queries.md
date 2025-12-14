@@ -463,14 +463,14 @@ ORDER BY total_revenue DESC;
 
 **Business Activities Covered:**
 
-- ✅ Employee Management (6 queries)
-- ✅ Customer Management (6 queries)
-- ✅ Menu Item Management (8 queries)
-- ✅ Order Management (8 queries)
-- ✅ Inventory Management (5 queries)
-- ✅ Recipe Management (5 queries)
-- ✅ Payment Processing (4 queries)
-- ✅ Analytics & Reporting (6 queries)
+- Employee Management (6 queries)
+- Customer Management (6 queries)
+- Menu Item Management (8 queries)
+- Order Management (8 queries)
+- Inventory Management (5 queries)
+- Recipe Management (5 queries)
+- Payment Processing (4 queries)
+- Analytics & Reporting (6 queries)
 
 **Query Types:**
 
