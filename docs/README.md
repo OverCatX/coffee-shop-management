@@ -12,13 +12,14 @@ The core of this project is demonstrating advanced database techniques. All data
 
 ### Database Techniques
 
-| Document                                                 | Description                                                                               |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| **[Schema & ERD](database/schema.md)**                   | Entity-Relationship Diagram, table structures, constraints, indexes, and relationships    |
-| **[Normalization (3NF)](database/normalization.md)**     | How Third Normal Form is implemented, functional dependencies, and normalization examples |
-| **[Transactions](database/transactions.md)**             | ACID properties, transaction management, and usage examples                               |
-| **[Query Optimization](database/query-optimization.md)** | Query optimization techniques, SQLAlchemy patterns, and SQL user queries (63+ queries)    |
-| **[Migrations](database/migrations.md)**                 | Database schema versioning with Alembic                                                   |
+| Document                                                       | Description                                                                               |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **[Schema & ERD](database/schema.md)**                         | Entity-Relationship Diagram, table structures, constraints, indexes, and relationships    |
+| **[Normalization (3NF)](database/normalization.md)**           | How Third Normal Form is implemented, functional dependencies, and normalization examples |
+| **[User Actions & Queries](database/user-actions-queries.md)** | Specific SQL queries users can perform (30+ queries, 3N=12 requirement)                   |
+| **[Transactions](database/transactions.md)**                   | ACID properties, transaction management, and usage examples                               |
+| **[Query Optimization](database/query-optimization.md)**       | Query optimization techniques, SQLAlchemy patterns, and performance best practices        |
+| **[Migrations](database/migrations.md)**                       | Database schema versioning with Alembic                                                   |
 
 ### Quick Links
 
@@ -75,9 +76,10 @@ docs/
 ├── database/                    # 🗄️ DATABASE DOCUMENTATION (CORE)
 │   ├── schema.md               # ERD, tables, relationships, constraints, indexes
 │   ├── normalization.md        # 3NF normalization & functional dependencies
+│   ├── user-actions-queries.md # User actions/queries (30+ SQL queries)
 │   ├── migrations.md           # Alembic migration guide
 │   ├── transactions.md         # ACID properties & transactions
-│   └── query-optimization.md   # Query optimization & SQL user queries
+│   └── query-optimization.md   # Query optimization & performance techniques
 │
 ├── setup.md                    # 🔧 Installation & configuration
 ├── api.md                      # 🔌 API documentation
@@ -93,8 +95,9 @@ docs/
 1. Start with **[Business Analysis](business-analysis.md)** to understand business requirements
 2. Review **[Database Schema](database/schema.md)** to understand structure, constraints, and indexes
 3. Read **[Normalization](database/normalization.md)** to see 3NF implementation and functional dependencies
-4. Review **[Transactions](database/transactions.md)** for ACID properties
-5. Study **[Query Optimization](database/query-optimization.md)** for performance techniques and SQL queries
+4. Explore **[User Actions & Queries](database/user-actions-queries.md)** for specific SQL queries (30+ queries)
+5. Review **[Transactions](database/transactions.md)** for ACID properties
+6. Study **[Query Optimization](database/query-optimization.md)** for performance techniques
 
 ### For Getting Started
 

@@ -413,6 +413,7 @@ SELECT mi.name, SUM(od.quantity) AS total_sold, SUM(od.subtotal) AS total_revenu
 
 ## Related Documentation
 
+- [User Actions and Queries](user-actions-queries.md) - Complete list of user actions/queries (30+ queries)
 - [Database Schema](schema.md) - Schema design and constraints/indexes
 - [Normalization](normalization.md) - Database normalization principles
 - [Migrations](migrations.md) - Database migration guide and version control
