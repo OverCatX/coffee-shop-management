@@ -32,7 +32,7 @@ python scripts/seed_mock_data.py
 ```
 
 This will create:
-- 4 employees (Manager, 2 Baristas, Cashier) with hashed passwords
+- 4 employees (Manager, Baristas, Cashier roles) with hashed passwords
 - 4 customers
 - 10 menu items
 - 5 ingredients

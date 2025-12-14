@@ -6,12 +6,6 @@ CREATE INDEX IF NOT EXISTS ix_employees_emp_id ON employees(emp_id);
 CREATE UNIQUE INDEX IF NOT EXISTS ix_employees_email ON employees(email) WHERE email IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS ix_employees_phone ON employees(phone) WHERE phone IS NOT NULL;
 
--- Managers indexes
-CREATE INDEX IF NOT EXISTS ix_managers_emp_id ON managers(emp_id);
-
--- Baristas indexes
-CREATE INDEX IF NOT EXISTS ix_baristas_emp_id ON baristas(emp_id);
-
 -- Customers indexes
 CREATE INDEX IF NOT EXISTS ix_customers_customer_id ON customers(customer_id);
 CREATE UNIQUE INDEX IF NOT EXISTS ix_customers_phone ON customers(phone) WHERE phone IS NOT NULL;
@@ -54,10 +48,6 @@ CREATE INDEX IF NOT EXISTS ix_payments_status ON payments(status);
 CREATE INDEX IF NOT EXISTS ix_payments_payment_date ON payments(payment_date);
 CREATE INDEX IF NOT EXISTS idx_payment_order_status ON payments(order_id, status);
 CREATE INDEX IF NOT EXISTS idx_payment_date_status ON payments(payment_date, status);
-
--- Barista menu items indexes
-CREATE INDEX IF NOT EXISTS ix_barista_menu_items_barista_id ON barista_menu_items(barista_id);
-CREATE INDEX IF NOT EXISTS ix_barista_menu_items_item_id ON barista_menu_items(item_id);
 
 -- Menu item ingredients indexes
 CREATE INDEX IF NOT EXISTS ix_menu_item_ingredients_item_id ON menu_item_ingredients(item_id);

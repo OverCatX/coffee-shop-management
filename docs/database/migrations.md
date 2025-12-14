@@ -117,15 +117,15 @@ def downgrade():
 ```python
 def upgrade():
     op.create_table(
-        'managers',
-        sa.Column('emp_id', sa.Integer(), nullable=False),
-        sa.Column('created_at', sa.DateTime(), nullable=False),
-        sa.PrimaryKeyConstraint('emp_id'),
-        sa.ForeignKeyConstraint(['emp_id'], ['employees.emp_id'], ondelete='CASCADE')
+        'customers',
+        sa.Column('customer_id', sa.Integer(), nullable=False),
+        sa.Column('name', sa.String(100), nullable=False),
+        sa.Column('email', sa.String(255), nullable=True),
+        sa.PrimaryKeyConstraint('customer_id')
     )
 
 def downgrade():
-    op.drop_table('managers')
+    op.drop_table('customers')
 ```
 
 ### Add Foreign Key
@@ -336,7 +336,9 @@ alembic revision -m "Migrate existing data"
 
 ## Related Documentation
 
-- [Database Setup](../setup/database-setup.md) - Initial database setup
 - [Database Schema](schema.md) - Complete schema documentation
+- [Normalization](normalization.md) - Database normalization principles
 - [Constraints & Indexes](constraints-indexes.md) - Creating constraints via migrations
+- [Transactions](transactions.md) - Transaction management and ACID properties
+- [Query Optimization](query-optimization.md) - Query performance optimization techniques
 

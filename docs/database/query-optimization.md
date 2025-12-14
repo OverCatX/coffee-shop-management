@@ -336,7 +336,9 @@ LIMIT 10;
 
 ## Related Documentation
 
-- [Constraints & Indexes](constraints-indexes.md) - Index creation and usage
 - [Database Schema](schema.md) - Schema design for optimization
-- [Transactions](transactions.md) - Transaction performance
+- [Normalization](normalization.md) - Database normalization principles
+- [Constraints & Indexes](constraints-indexes.md) - Index creation and usage
+- [Migrations](migrations.md) - Database migration guide and version control
+- [Transactions](transactions.md) - Transaction performance optimization
 

@@ -9,16 +9,6 @@ INSERT INTO employees (name, role, salary, email, phone, hire_date) VALUES
     ('Alice Williams', 'Barista', 31000.00, 'alice.williams@coffeeshop.com', '555-0104', '2022-01-08')
 ON CONFLICT DO NOTHING;
 
--- Insert managers
-INSERT INTO managers (emp_id) 
-SELECT emp_id FROM employees WHERE role = 'Manager'
-ON CONFLICT DO NOTHING;
-
--- Insert baristas
-INSERT INTO baristas (emp_id) 
-SELECT emp_id FROM employees WHERE role = 'Barista'
-ON CONFLICT DO NOTHING;
-
 -- Insert sample customers
 INSERT INTO customers (name, phone, email, loyalty_points) VALUES
     ('Customer One', '555-1001', 'customer1@example.com', 50.00),
@@ -63,17 +53,6 @@ INSERT INTO menu_item_ingredients (item_id, ingredient_id, amount_required, unit
     ((SELECT item_id FROM menu_items WHERE name = 'Mocha'), (SELECT ingredient_id FROM ingredients WHERE name = 'Coffee Beans'), 0.02, 'kg'),
     ((SELECT item_id FROM menu_items WHERE name = 'Mocha'), (SELECT ingredient_id FROM ingredients WHERE name = 'Milk'), 0.18, 'liter'),
     ((SELECT item_id FROM menu_items WHERE name = 'Mocha'), (SELECT ingredient_id FROM ingredients WHERE name = 'Chocolate Syrup'), 0.05, 'liter')
-ON CONFLICT DO NOTHING;
-
--- Insert barista menu items (which items each barista can make)
-INSERT INTO barista_menu_items (barista_id, item_id, proficiency_level) VALUES
-    ((SELECT emp_id FROM baristas WHERE emp_id = (SELECT emp_id FROM employees WHERE name = 'Jane Doe')), (SELECT item_id FROM menu_items WHERE name = 'Espresso'), 'advanced'),
-    ((SELECT emp_id FROM baristas WHERE emp_id = (SELECT emp_id FROM employees WHERE name = 'Jane Doe')), (SELECT item_id FROM menu_items WHERE name = 'Cappuccino'), 'advanced'),
-    ((SELECT emp_id FROM baristas WHERE emp_id = (SELECT emp_id FROM employees WHERE name = 'Jane Doe')), (SELECT item_id FROM menu_items WHERE name = 'Latte'), 'intermediate'),
-    ((SELECT emp_id FROM baristas WHERE emp_id = (SELECT emp_id FROM employees WHERE name = 'Bob Johnson')), (SELECT item_id FROM menu_items WHERE name = 'Espresso'), 'intermediate'),
-    ((SELECT emp_id FROM baristas WHERE emp_id = (SELECT emp_id FROM employees WHERE name = 'Bob Johnson')), (SELECT item_id FROM menu_items WHERE name = 'Americano'), 'advanced'),
-    ((SELECT emp_id FROM baristas WHERE emp_id = (SELECT emp_id FROM employees WHERE name = 'Alice Williams')), (SELECT item_id FROM menu_items WHERE name = 'Mocha'), 'advanced'),
-    ((SELECT emp_id FROM baristas WHERE emp_id = (SELECT emp_id FROM employees WHERE name = 'Alice Williams')), (SELECT item_id FROM menu_items WHERE name = 'Hot Chocolate'), 'advanced')
 ON CONFLICT DO NOTHING;
 
 -- Insert inventory

@@ -31,9 +31,6 @@ Foreign keys maintain referential integrity between tables.
 
 **Examples:**
 ```sql
--- Foreign key with CASCADE delete
-managers.emp_id REFERENCES employees(emp_id) ON DELETE CASCADE
-
 -- Foreign key with SET NULL
 orders.customer_id REFERENCES customers(customer_id) ON DELETE SET NULL
 
@@ -68,11 +65,6 @@ CHECK (quantity >= 0);
 ALTER TABLE orders 
 ADD CONSTRAINT check_status_valid 
 CHECK (status IN ('pending', 'completed', 'cancelled'));
-
--- Proficiency level validation
-ALTER TABLE barista_menu_items 
-ADD CONSTRAINT check_proficiency_level 
-CHECK (proficiency_level IN ('basic', 'intermediate', 'advanced'));
 ```
 
 **All Check Constraints:**
@@ -91,7 +83,6 @@ CHECK (proficiency_level IN ('basic', 'intermediate', 'advanced'));
 | payments | check_payment_amount_positive | payment_amount > 0 |
 | customers | check_loyalty_points_non_negative | loyalty_points >= 0 |
 | menu_item_ingredients | check_amount_required_positive | amount_required > 0 |
-| barista_menu_items | check_proficiency_level | proficiency_level IN ('basic', 'intermediate', 'advanced') |
 
 ### Unique Constraints
 
@@ -303,6 +294,8 @@ Foreign keys create indexes automatically but add overhead:
 ## Related Documentation
 
 - [Database Schema](schema.md) - Complete schema with constraints
-- [Query Optimization](query-optimization.md) - Using indexes for optimization
+- [Normalization](normalization.md) - Database normalization principles
 - [Migrations](migrations.md) - Creating constraints via migrations
+- [Transactions](transactions.md) - Transaction management and ACID properties
+- [Query Optimization](query-optimization.md) - Using indexes for optimization
 

@@ -15,24 +15,6 @@ CREATE TABLE IF NOT EXISTS employees (
     is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
--- Create managers table
-CREATE TABLE IF NOT EXISTS managers (
-    emp_id INTEGER PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    is_deleted BOOLEAN DEFAULT FALSE NOT NULL,
-    CONSTRAINT fk_manager_employee FOREIGN KEY (emp_id) REFERENCES employees(emp_id) ON DELETE CASCADE
-);
-
--- Create baristas table
-CREATE TABLE IF NOT EXISTS baristas (
-    emp_id INTEGER PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    is_deleted BOOLEAN DEFAULT FALSE NOT NULL,
-    CONSTRAINT fk_barista_employee FOREIGN KEY (emp_id) REFERENCES employees(emp_id) ON DELETE CASCADE
-);
-
 -- Create customers table
 CREATE TABLE IF NOT EXISTS customers (
     customer_id SERIAL PRIMARY KEY,
@@ -123,19 +105,6 @@ CREATE TABLE IF NOT EXISTS payments (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     is_deleted BOOLEAN DEFAULT FALSE NOT NULL,
     CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
-);
-
--- Create barista_menu_items junction table
-CREATE TABLE IF NOT EXISTS barista_menu_items (
-    barista_id INTEGER NOT NULL,
-    item_id INTEGER NOT NULL,
-    proficiency_level VARCHAR(20) DEFAULT 'basic' NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    is_deleted BOOLEAN DEFAULT FALSE NOT NULL,
-    CONSTRAINT pk_barista_menu_item PRIMARY KEY (barista_id, item_id),
-    CONSTRAINT fk_barista_menu_item_barista FOREIGN KEY (barista_id) REFERENCES baristas(emp_id) ON DELETE CASCADE,
-    CONSTRAINT fk_barista_menu_item_item FOREIGN KEY (item_id) REFERENCES menu_items(item_id) ON DELETE CASCADE
 );
 
 -- Create menu_item_ingredients junction table

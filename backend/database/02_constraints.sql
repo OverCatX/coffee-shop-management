@@ -30,10 +30,6 @@ ALTER TABLE payments
     ADD CONSTRAINT check_payment_amount_positive CHECK (amount > 0),
     ADD CONSTRAINT check_payment_status CHECK (status IN ('pending', 'completed', 'failed'));
 
--- Barista menu items constraints
-ALTER TABLE barista_menu_items
-    ADD CONSTRAINT check_proficiency_level CHECK (proficiency_level IN ('basic', 'intermediate', 'advanced'));
-
 -- Menu item ingredients constraints
 ALTER TABLE menu_item_ingredients
     ADD CONSTRAINT check_amount_required_positive CHECK (amount_required > 0);

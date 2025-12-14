@@ -73,7 +73,6 @@ order_details (
 ```sql
 -- ✅ Correct (3NF)
 employees (emp_id, name, email, role, salary)
-managers (emp_id, ...)  -- Role-specific data separated
 
 -- ❌ Incorrect (violates 3NF)
 employees (emp_id, name, email, role, salary, manager_bonus)
@@ -84,22 +83,19 @@ employees (emp_id, name, email, role, salary, manager_bonus)
 
 ### Employee Management
 
-**Design Decision:** Separate `employees`, `managers`, and `baristas` tables.
+**Design Decision:** Single `employees` table with role field.
 
 **Reasoning:**
 
-- Common employee data in `employees` table
-- Role-specific data in separate tables
-- Eliminates NULL values and data redundancy
+- All employee data in one table
+- Role is stored as a field in the employees table
+- Simpler structure without unnecessary table separation
 - Follows 3NF principles
 
 **Structure:**
 
 ```
 employees (emp_id, name, email, role, salary, ...)
-    ↓
-managers (emp_id, ...)  -- Manager-specific attributes
-baristas (emp_id, ...)  -- Barista-specific attributes
 ```
 
 ### Menu Items and Ingredients
@@ -193,7 +189,7 @@ While the database follows 3NF, some denormalization may be considered for perfo
 - [x] All tables in 2NF (no partial dependencies)
 - [x] All tables in 3NF (no transitive dependencies)
 - [x] Proper junction tables for many-to-many relationships
-- [x] Role-specific tables separated from base tables
+- [x] Single employees table with role field (no unnecessary table separation)
 - [x] No redundant data storage
 - [x] Foreign keys properly defined
 
@@ -201,4 +197,6 @@ While the database follows 3NF, some denormalization may be considered for perfo
 
 - [Database Schema](schema.md) - Complete schema documentation
 - [Constraints & Indexes](constraints-indexes.md) - Data integrity constraints
-- [Query Optimization](query-optimization.md) - Performance optimization
+- [Migrations](migrations.md) - Database migration guide and version control
+- [Transactions](transactions.md) - Transaction management and ACID properties
+- [Query Optimization](query-optimization.md) - Performance optimization techniques

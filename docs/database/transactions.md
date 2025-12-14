@@ -13,6 +13,7 @@ A transaction is a sequence of database operations that are executed as a single
 **Definition:** All operations in a transaction succeed or all fail.
 
 **Implementation:**
+
 ```python
 # Example: Creating an order with order details
 @transactional
@@ -29,6 +30,7 @@ def create_order(order_data):
 **Definition:** Database remains in a consistent state before and after transaction.
 
 **Implementation:**
+
 - Constraints ensure data consistency
 - Foreign keys maintain referential integrity
 - Check constraints enforce business rules
@@ -38,6 +40,7 @@ def create_order(order_data):
 **Definition:** Concurrent transactions don't interfere with each other.
 
 **Isolation Levels:**
+
 - **READ UNCOMMITTED** - Lowest isolation, allows dirty reads
 - **READ COMMITTED** - Default in PostgreSQL, prevents dirty reads
 - **REPEATABLE READ** - Prevents non-repeatable reads
@@ -50,6 +53,7 @@ def create_order(order_data):
 **Definition:** Committed transactions persist even after system failure.
 
 **Implementation:**
+
 - PostgreSQL Write-Ahead Logging (WAL)
 - Transaction logs ensure durability
 - Automatic recovery on restart
@@ -80,7 +84,7 @@ def create_order_with_details(db: Session, order_data: OrderCreate):
         order = Order(**order_data.dict())
         db.add(order)
         db.flush()  # Get order_id without committing
-        
+
         # Add order details
         for detail in order_data.order_details:
             order_detail = OrderDetail(
@@ -88,7 +92,7 @@ def create_order_with_details(db: Session, order_data: OrderCreate):
                 **detail.dict()
             )
             db.add(order_detail)
-        
+
         # Commit all changes
         db.commit()
         return order
@@ -113,7 +117,7 @@ def create_order(db: Session, order_data: OrderCreate):
     """
     # Calculate total
     total = sum(item.subtotal for item in order_data.order_details)
-    
+
     # Create order header
     order = Order(
         customer_id=order_data.customer_id,
@@ -123,7 +127,7 @@ def create_order(db: Session, order_data: OrderCreate):
     )
     db.add(order)
     db.flush()  # Get order_id
-    
+
     # Create order details
     for detail_data in order_data.order_details:
         order_detail = OrderDetail(
@@ -134,7 +138,7 @@ def create_order(db: Session, order_data: OrderCreate):
             subtotal=detail_data.subtotal
         )
         db.add(order_detail)
-    
+
     # Create payment
     payment = Payment(
         order_id=order.order_id,
@@ -142,7 +146,7 @@ def create_order(db: Session, order_data: OrderCreate):
         payment_amount=order_data.payment_amount
     )
     db.add(payment)
-    
+
     # Commit all changes
     db.commit()
     db.refresh(order)
@@ -162,19 +166,19 @@ def complete_order(db: Session, order_id: int):
     """
     # Get order with details
     order = db.query(Order).filter(Order.order_id == order_id).first()
-    
+
     if not order:
         raise ValueError("Order not found")
-    
+
     # Check inventory for all items
     for detail in order.order_details:
         inventory = db.query(Inventory).filter(
             Inventory.ingredient_id == detail.item_id
         ).first()
-        
+
         if inventory.quantity < detail.quantity:
             raise ValueError(f"Insufficient inventory for item {detail.item_id}")
-    
+
     # Update inventory (within transaction)
     for detail in order.order_details:
         inventory = db.query(Inventory).filter(
@@ -182,10 +186,10 @@ def complete_order(db: Session, order_id: int):
         ).first()
         inventory.quantity -= detail.quantity
         inventory.last_updated = datetime.now()
-    
+
     # Update order status
     order.status = 'completed'
-    
+
     # Commit all changes
     db.commit()
     return order
@@ -211,10 +215,10 @@ def transactional(func):
                 break
         if not db:
             db = kwargs.get('db')
-        
+
         if not db:
             raise ValueError("Database session not found")
-        
+
         try:
             result = func(*args, **kwargs)
             db.commit()
@@ -222,7 +226,7 @@ def transactional(func):
         except Exception as e:
             db.rollback()
             raise e
-    
+
     return wrapper
 ```
 
@@ -249,10 +253,10 @@ def create_order(db: Session, order_data: OrderCreate):
 def process_order(db: Session, order_id: int):
     # Outer transaction
     order = db.query(Order).filter(Order.order_id == order_id).first()
-    
+
     # Nested operation (uses same transaction)
     update_inventory(db, order)
-    
+
     # All commits together
     db.commit()
 ```
@@ -273,12 +277,12 @@ engine = create_engine(
 
 ### Isolation Level Comparison
 
-| Level | Dirty Reads | Non-Repeatable Reads | Phantom Reads |
-|-------|-------------|---------------------|---------------|
-| READ UNCOMMITTED | Yes | Yes | Yes |
-| READ COMMITTED | No | Yes | Yes |
-| REPEATABLE READ | No | No | Yes |
-| SERIALIZABLE | No | No | No |
+| Level            | Dirty Reads | Non-Repeatable Reads | Phantom Reads |
+| ---------------- | ----------- | -------------------- | ------------- |
+| READ UNCOMMITTED | Yes         | Yes                  | Yes           |
+| READ COMMITTED   | No          | Yes                  | Yes           |
+| REPEATABLE READ  | No          | No                   | Yes           |
+| SERIALIZABLE     | No          | No                   | No            |
 
 ## Deadlock Handling
 
@@ -290,7 +294,7 @@ def update_inventory(db: Session, ingredient_id: int, quantity: Decimal):
     inventory = db.query(Inventory).filter(
         Inventory.ingredient_id == ingredient_id
     ).with_for_update().first()
-    
+
     inventory.quantity += quantity
     db.commit()
 ```
@@ -323,7 +327,8 @@ def update_with_retry(db: Session, func, max_retries=3):
 
 ## Related Documentation
 
-- [Database Setup](../setup/database-setup.md) - Database configuration
-- [Query Optimization](query-optimization.md) - Transaction performance
-- [API Documentation](../api/overview.md) - Transaction usage in API
-
+- [Database Schema](schema.md) - Complete schema documentation
+- [Normalization](normalization.md) - Database normalization principles
+- [Constraints & Indexes](constraints-indexes.md) - Data integrity constraints
+- [Migrations](migrations.md) - Database migration guide and version control
+- [Query Optimization](query-optimization.md) - Transaction performance optimization

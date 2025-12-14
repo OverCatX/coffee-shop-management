@@ -4,7 +4,7 @@
 -- Use the Python script (scripts/seed_mock_data.py) instead for proper password hashing
 
 -- Clear existing data (optional - be careful!)
--- TRUNCATE TABLE order_details, orders, inventory, menu_items, customers, baristas, managers, employees CASCADE;
+-- TRUNCATE TABLE order_details, orders, inventory, menu_items, customers, employees CASCADE;
 
 -- Insert Employees (with password_hash - these are example hashes for "password123")
 -- In production, use the Python script to generate proper bcrypt hashes
@@ -14,16 +14,6 @@ INSERT INTO employees (name, role, salary, email, phone, hire_date, password_has
     ('Mike Chen', 'Barista', 25000.00, 'mike.chen@coffeeshop.com', '083-456-7890', '2023-05-10', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYqJZ5q5Z5O'),
     ('Emma Wilson', 'Cashier', 22000.00, 'emma.w@coffeeshop.com', '084-567-8901', '2023-07-01', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYqJZ5q5Z5O')
 ON CONFLICT (email) DO NOTHING;
-
--- Insert Managers
-INSERT INTO managers (emp_id) 
-SELECT emp_id FROM employees WHERE role = 'Manager' AND email = 'john.smith@coffeeshop.com'
-ON CONFLICT DO NOTHING;
-
--- Insert Baristas
-INSERT INTO baristas (emp_id) 
-SELECT emp_id FROM employees WHERE role = 'Barista' AND email IN ('sarah.j@coffeeshop.com', 'mike.chen@coffeeshop.com')
-ON CONFLICT DO NOTHING;
 
 -- Insert Customers
 INSERT INTO customers (name, phone, email, loyalty_points) VALUES
