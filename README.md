@@ -202,22 +202,94 @@ coffee-shop-management/
 
 ---
 
-## 6. System Architecture
+## 6. Business Selection and Analysis
 
-The system follows a three-tier architecture: Frontend (Next.js), Backend (FastAPI), and Database (PostgreSQL).
+### Business Domain
 
-**Key Features:**
+**Coffee Shop Management System (POS)** - A comprehensive Point of Sale and management system for coffee shops to manage orders, inventory, menu items, employees, customers, and business operations.
 
-- RESTful API with JWT authentication
-- Repository pattern for data access
-- ORM-based database operations
-- Real-time data updates with SWR
+### Business Activities and Processes
 
-> 📚 **For complete architecture documentation including request flow, component design, and data flow examples, see [System Architecture](docs/architecture.md)**
+The system supports 10 core business activities:
+
+1. **Point of Sale (POS) Operations** - Create orders, process payments
+2. **Order Management** - Track orders from creation to completion
+3. **Inventory Management** - Monitor ingredient stock levels
+4. **Menu Management** - Manage menu items, recipes, and pricing
+5. **Customer Management** - Track customer information and loyalty points
+6. **Employee Management** - Role-based access control
+7. **Recipe Management** - Define ingredient requirements for menu items
+8. **Payment Processing** - Record and track payments
+9. **Stock Availability Checking** - Verify ingredient availability
+10. **Loyalty Points System** - Customer rewards program
+
+### Why Data Collection and Management is Necessary
+
+Each activity requires data operations:
+
+- **INSERT:** Store new transactions, records, and relationships (orders, customers, employees, menu items)
+- **UPDATE:** Modify existing data (order status, inventory quantities, prices, loyalty points)
+- **DELETE:** Soft delete records to maintain historical data integrity
+- **USE (Query):** Retrieve data for display, analysis, decision-making, and reporting
+
+> 📚 **For detailed business analysis including data operations by activity, see [Business Analysis](docs/business-analysis.md)**
 
 ---
 
-## 7. Database Design & Techniques
+## 7. Database Design
+
+### Design Techniques Used
+
+#### UML (Entity-Relationship Diagram)
+
+- Complete ERD showing all 9 core tables and their relationships
+- Visual representation of database structure
+
+#### Functional Dependencies
+
+- Analysis of functional dependencies for all tables
+- Verification of normalization requirements
+- Documentation of primary keys and unique constraints
+
+#### Normalization (3rd Normal Form - 3NF)
+
+- **1NF:** All tables have atomic values, no repeating groups
+- **2NF:** All non-key attributes fully depend on entire primary key
+- **3NF:** No transitive dependencies, proper table separation
+- Junction tables for many-to-many relationships
+
+### User Actions and Queries
+
+From the business activities, specific SQL queries users can perform:
+
+- **30+ SQL queries** covering all business activities (exceeds 3N requirement for 4-person group)
+- Queries include INSERT, UPDATE, DELETE (soft delete), and SELECT operations
+- All queries use parameterized inputs (`<parameter>`) for user input
+- Queries follow best practices: use indexes, avoid SELECT \*, proper JOINs
+
+**Query Categories:**
+
+- Employee Management (6 queries)
+- Customer Management (6 queries)
+- Menu Item Management (8 queries)
+- Order Management (8 queries)
+- Inventory Management (5 queries)
+- Recipe Management (5 queries)
+- Payment Processing (4 queries)
+- Analytics & Reporting (6 queries)
+
+> 📚 **For complete list of user actions and queries, see [User Actions & Queries](docs/database/user-actions-queries.md)**
+
+### Database Design Documentation
+
+- **[Schema & ERD](docs/database/schema.md)** - Complete schema with ERD diagram, table structures, constraints, and indexes
+- **[Normalization (3NF)](docs/database/normalization.md)** - Normalization process, functional dependencies, and examples
+- **[User Actions & Queries](docs/database/user-actions-queries.md)** - 30+ SQL queries users can perform
+- **[Functional Dependencies](docs/database/normalization.md#functional-dependencies)** - Detailed FD analysis for all tables
+
+---
+
+## 8. Database Implementation & Techniques
 
 This project demonstrates advanced database management techniques. All database-related documentation is available in the [`docs/database/`](docs/database/) directory.
 
@@ -311,7 +383,7 @@ The `backend/database/` directory contains SQL scripts for manual database setup
 
 ---
 
-## 8. API Documentation
+## 9. API Documentation
 
 RESTful API with JWT authentication. Base URL: `http://localhost:8000/api/v1`
 

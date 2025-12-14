@@ -2,233 +2,121 @@
 
 This document explains the business domain, activities, processes, and why data collection and management is necessary for the Coffee Shop Management System.
 
-## Business Domain
+## 1. Business Domain Selection
 
 **Coffee Shop Management System (POS)** - A comprehensive Point of Sale and management system designed for coffee shops to manage daily operations, including orders, inventory, menu items, employees, customers, and business analytics.
 
-## Business Activities and Processes
+---
+
+## 2. Business Activities and Processes
 
 ### 1. Point of Sale (POS) Operations
 
-**Activities:**
+**Activities:** Create orders, add items, calculate totals, process payments, print receipts
 
-- Create new orders for customers
-- Add menu items to orders
-- Calculate order totals
-- Process payments (cash, card, loyalty points)
-- Print receipts
+**Data Operations:**
 
-**Why Data Collection is Necessary:**
-
-- **INSERT:** Need to store order information (`orders` table) and order line items (`order_details` table) to track what was sold, when, and for how much
-- **UPDATE:** Need to update order status (pending → completed → cancelled) to track order lifecycle
-- **USE:** Query orders to calculate daily revenue, track popular items, and analyze sales patterns
-
-**Data Requirements:**
-
-- Order details (items, quantities, prices)
-- Customer information (for loyalty points and order history)
-- Payment information (method, amount, status)
-- Timestamps (for reporting and analytics)
+- **INSERT:** Store orders (`orders`), order items (`order_details`), and payments (`payments`)
+- **UPDATE:** Update order status (pending → completed)
+- **USE:** Query menu items for display, calculate revenue, track sales patterns
 
 ### 2. Order Management
 
-**Activities:**
+**Activities:** View pending orders, track status, update status, view history, handle cancellations
 
-- View pending orders
-- Track order status (pending, in-progress, completed, cancelled)
-- Update order status
-- View order history
-- Handle order cancellations
-
-**Why Data Collection is Necessary:**
+**Data Operations:**
 
 - **INSERT:** Create order records when customers place orders
-- **UPDATE:** Change order status as orders progress through the system (pending → completed)
-- **DELETE:** Soft delete cancelled orders (maintain history but mark as deleted)
-- **USE:** Query orders by status to display pending orders to baristas, calculate completion rates, and track order processing times
-
-**Data Requirements:**
-
-- Order status tracking
-- Order timestamps (created_at, updated_at)
-- Order relationships (customer, items, payment)
+- **UPDATE:** Change order status (pending → completed → cancelled)
+- **DELETE:** Soft delete cancelled orders (maintain history)
+- **USE:** Query orders by status, calculate completion rates, track processing times
 
 ### 3. Inventory Management
 
-**Activities:**
+**Activities:** Track stock levels, update inventory, set thresholds, receive low stock alerts
 
-- Track ingredient stock levels
-- Update inventory when ingredients are used
-- Set minimum stock thresholds
-- Receive low stock alerts
-- Record inventory updates (who updated, when)
+**Data Operations:**
 
-**Why Data Collection is Necessary:**
-
-- **INSERT:** Add new ingredients to inventory when received
-- **UPDATE:** Update ingredient quantities when used in orders or restocked
-- **USE:** Query inventory levels to check if ingredients are available before accepting orders, generate low stock alerts, and track ingredient usage patterns
-
-**Data Requirements:**
-
-- Current stock quantities
-- Minimum thresholds for alerts
-- Ingredient usage tracking
-- Update history (who, when)
+- **INSERT:** Add new ingredients to inventory
+- **UPDATE:** Update quantities when used or restocked
+- **USE:** Query inventory levels, generate low stock alerts, track usage patterns
 
 ### 4. Menu Management
 
-**Activities:**
+**Activities:** Add menu items, update prices, set availability, organize by category, define recipes
 
-- Add new menu items
-- Update menu item prices
-- Set item availability (available/unavailable)
-- Organize items by category
-- Define recipes (ingredients needed for each item)
+**Data Operations:**
 
-**Why Data Collection is Necessary:**
-
-- **INSERT:** Add new menu items with prices, categories, and descriptions
-- **UPDATE:** Change prices, availability status, or item details
-- **DELETE:** Soft delete discontinued items (maintain history)
-- **USE:** Query menu items to display menu to customers, check availability, calculate costs based on ingredient prices, and analyze popular items
-
-**Data Requirements:**
-
-- Menu item details (name, price, category, description)
-- Availability status
-- Recipe information (ingredients and amounts required)
+- **INSERT:** Add menu items and recipes (ingredient links)
+- **UPDATE:** Change prices, availability, or item details
+- **DELETE:** Soft delete discontinued items
+- **USE:** Query menu items for display, check availability, calculate costs, analyze popular items
 
 ### 5. Customer Management
 
-**Activities:**
+**Activities:** Register customers, search customers, update information, track loyalty points, view order history
 
-- Register new customers
-- Search customers by name, phone, or email
-- Update customer information
-- Track customer loyalty points
-- View customer order history
+**Data Operations:**
 
-**Why Data Collection is Necessary:**
-
-- **INSERT:** Create customer records when new customers register
-- **UPDATE:** Update customer information (name, phone, email) and loyalty points
+- **INSERT:** Create customer records
+- **UPDATE:** Update customer information and loyalty points
 - **DELETE:** Soft delete customer records (maintain order history)
-- **USE:** Query customers to find existing customers during checkout, track loyalty points, view purchase history, and identify top customers
-
-**Data Requirements:**
-
-- Customer contact information (name, phone, email)
-- Loyalty points balance
-- Order history linkage
+- **USE:** Query customers during checkout, track loyalty points, view purchase history
 
 ### 6. Employee Management
 
-**Activities:**
+**Activities:** Register employees, assign roles, track information, authentication and authorization
 
-- Register new employees
-- Assign roles (Manager, Barista, Cashier)
-- Track employee information (salary, hire date)
-- Employee authentication and authorization
-- View employee list
+**Data Operations:**
 
-**Why Data Collection is Necessary:**
-
-- **INSERT:** Add new employees with roles and credentials
+- **INSERT:** Add employees with roles and credentials
 - **UPDATE:** Update employee information, roles, or salaries
 - **DELETE:** Soft delete employee records (maintain order history)
-- **USE:** Query employees for authentication (login), authorization (check role permissions), and track who created/updated orders
-
-**Data Requirements:**
-
-- Employee credentials (email, password hash)
-- Role information (for access control)
-- Employee details (name, salary, hire date)
+- **USE:** Query for authentication (login), authorization (check permissions), track who created orders
 
 ### 7. Recipe Management
 
-**Activities:**
+**Activities:** Define ingredient requirements, specify amounts, update recipes, check availability
 
-- Define which ingredients are needed for each menu item
-- Specify amounts required for each ingredient
-- Update recipes
-- Check if ingredients are available for a menu item
-
-**Why Data Collection is Necessary:**
+**Data Operations:**
 
 - **INSERT:** Create recipe records linking menu items to ingredients
 - **UPDATE:** Modify ingredient amounts in recipes
 - **DELETE:** Remove ingredients from recipes
-- **USE:** Query recipes to calculate menu item costs, check ingredient availability before accepting orders, and generate ingredient usage reports
-
-**Data Requirements:**
-
-- Menu item to ingredient relationships
-- Amount required for each ingredient
-- Unit of measurement
+- **USE:** Query recipes to calculate costs, check ingredient availability, generate usage reports
 
 ### 8. Payment Processing
 
-**Activities:**
+**Activities:** Record payment method, track status, link to orders, process refunds
 
-- Record payment method (cash, card, loyalty points)
-- Track payment status (pending, completed, failed)
-- Link payments to orders
-- Process refunds
-
-**Why Data Collection is Necessary:**
+**Data Operations:**
 
 - **INSERT:** Create payment records when orders are paid
 - **UPDATE:** Update payment status (pending → completed)
-- **USE:** Query payments to calculate revenue by payment method, track payment success rates, and generate financial reports
-
-**Data Requirements:**
-
-- Payment method
-- Payment amount
-- Payment status
-- Order linkage
+- **USE:** Query payments to calculate revenue by method, track success rates, generate financial reports
 
 ### 9. Stock Availability Checking
 
-**Activities:**
+**Activities:** Check ingredient availability, verify stock levels, calculate if enough ingredients exist
 
-- Check if ingredients are available before accepting orders
-- Verify stock levels meet minimum requirements
-- Calculate if enough ingredients exist for menu items
+**Data Operations:**
 
-**Why Data Collection is Necessary:**
-
-- **USE:** Query inventory levels and recipes to determine if orders can be fulfilled, prevent overselling, and ensure quality control
-
-**Data Requirements:**
-
-- Current inventory quantities
-- Recipe requirements
-- Minimum thresholds
+- **USE:** Query inventory levels and recipes to determine if orders can be fulfilled, prevent overselling
 
 ### 10. Loyalty Points System
 
-**Activities:**
+**Activities:** Award points, redeem points, track balances, view point history
 
-- Award points to customers based on purchases
-- Redeem points for discounts
-- Track point balances
-- View point history
+**Data Operations:**
 
-**Why Data Collection is Necessary:**
+- **UPDATE:** Increase points on purchases, decrease points on redemption
+- **USE:** Query loyalty points to display balances, calculate rewards, identify top customers
 
-- **UPDATE:** Increase loyalty points when customers make purchases
-- **UPDATE:** Decrease loyalty points when customers redeem points
-- **USE:** Query loyalty points to display customer balances, calculate rewards, and identify top customers
+---
 
-**Data Requirements:**
+## 3. Summary: Why Data Collection and Management is Necessary
 
-- Customer loyalty point balances
-- Point transaction history
-
-## Summary: Data Operations by Activity
+Each business activity requires data operations to function:
 
 | Activity             | INSERT                          | UPDATE                        | DELETE                | USE (Query)                           |
 | -------------------- | ------------------------------- | ----------------------------- | --------------------- | ------------------------------------- |
@@ -243,19 +131,18 @@ This document explains the business domain, activities, processes, and why data 
 | Stock Availability   | -                               | -                             | -                     | Inventory Levels, Recipe Requirements |
 | Loyalty Points       | -                               | Point Balances                | -                     | Point Balances, Top Customers         |
 
-## Data Flow Example: Creating an Order
+**Key Points:**
 
-1. **Customer Selection:** Query `customers` table to find or create customer
-2. **Menu Display:** Query `menu_items` table to show available items
-3. **Stock Check:** Query `inventory` and `menu_item_ingredients` to verify ingredient availability
-4. **Order Creation:** INSERT into `orders` table
-5. **Order Details:** INSERT into `order_details` table for each item
-6. **Payment:** INSERT into `payments` table
-7. **Loyalty Points:** UPDATE `customers.loyalty_points`
-8. **Inventory Update:** UPDATE `inventory.quantity` for used ingredients
+- **INSERT** operations are needed to store new transactions, records, and relationships
+- **UPDATE** operations are needed to modify existing data (status changes, quantity updates, price changes)
+- **DELETE** operations use soft delete (mark as deleted) to maintain historical data integrity
+- **USE** (Query) operations are needed to retrieve data for display, analysis, decision-making, and reporting
+
+---
 
 ## Related Documentation
 
 - [Database Schema](database/schema.md) - Complete database structure, constraints, and indexes
 - [Normalization](database/normalization.md) - Database normalization and functional dependencies
+- [User Actions & Queries](database/user-actions-queries.md) - Specific SQL queries users can perform
 - [Query Optimization](database/query-optimization.md) - Query optimization techniques and SQL queries
