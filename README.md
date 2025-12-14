@@ -40,7 +40,29 @@ This project demonstrates advanced **database design and management techniques**
 
 ---
 
-## 3. Quick Start
+## 3. Database Schema
+
+The database consists of 9 core tables following Third Normal Form (3NF) normalization:
+
+![Database ERD Diagram](docs/ERD-Diagram.png)
+
+**Core Tables:**
+
+- `employees` - Employee management with role-based access (Manager, Barista, Cashier)
+- `customers` - Customer information and loyalty points
+- `menu_items` - Menu items with pricing and availability
+- `ingredients` - Ingredient definitions
+- `menu_item_ingredients` - Many-to-many relationship (recipes)
+- `inventory` - Stock levels for ingredients
+- `orders` - Order headers with customer and employee references
+- `order_details` - Order line items
+- `payments` - Payment records linked to orders
+
+> 📚 **For detailed schema documentation including table structures, relationships, and column descriptions, see [Schema Documentation](docs/database/schema.md)**
+
+---
+
+## 4. Quick Start
 
 ### Prerequisites
 
@@ -146,7 +168,7 @@ After seeding the database (using either Option A or Option B above):
 
 ---
 
-## 4. Project Structure
+## 5. Project Structure
 
 ```
 coffee-shop-management/
@@ -180,7 +202,7 @@ coffee-shop-management/
 
 ---
 
-## 5. System Architecture
+## 6. System Architecture
 
 The system follows a three-tier architecture: Frontend (Next.js), Backend (FastAPI), and Database (PostgreSQL).
 
@@ -195,7 +217,7 @@ The system follows a three-tier architecture: Frontend (Next.js), Backend (FastA
 
 ---
 
-## 6. Database Design & Techniques
+## 7. Database Design & Techniques
 
 This project demonstrates advanced database management techniques. All database-related documentation is available in the [`docs/database/`](docs/database/) directory.
 
@@ -289,7 +311,7 @@ The `backend/database/` directory contains SQL scripts for manual database setup
 
 ---
 
-## 7. API Documentation
+## 8. API Documentation
 
 RESTful API with JWT authentication. Base URL: `http://localhost:8000/api/v1`
 
