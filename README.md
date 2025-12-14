@@ -185,9 +185,7 @@ coffee-shop-management/
 │   │   ├── 01_schema.sql     # Table definitions
 │   │   ├── 02_constraints.sql # Constraints and validation rules
 │   │   ├── 03_indexes.sql    # Performance indexes
-│   │   ├── 04_seed_data.sql  # Sample seed data
 │   │   ├── 05_add_password_hash.sql # Password hash migration
-│   │   ├── 06_seed_mock_data.sql # Mock data for development
 │   │   └── 07_exported_seed_data.sql # Exported demo seed data (if available)
 │   └── scripts/               # Utility scripts
 │
@@ -362,9 +360,7 @@ The `backend/database/` directory contains SQL scripts for manual database setup
 | `01_schema.sql`             | Complete DDL for creating all tables (employees, customers, menu_items, ingredients, menu_item_ingredients, inventory, orders, order_details, payments) |
 | `02_constraints.sql`        | Check constraints, foreign key constraints, and data validation rules                                                                                   |
 | `03_indexes.sql`            | Performance indexes for query optimization                                                                                                              |
-| `04_seed_data.sql`          | Sample seed data for initial testing                                                                                                                    |
 | `05_add_password_hash.sql`  | Migration script to add password_hash column to employees table                                                                                         |
-| `06_seed_mock_data.sql`     | Mock data matching frontend dev-mocks (includes hashed passwords)                                                                                       |
 | `07_exported_seed_data.sql` | Exported demo seed data from actual database (if available) - use this to get real demo data instead of mock data                                       |
 
 **Note:** These SQL scripts are provided for reference and manual setup. The recommended approach is to use Alembic migrations (`alembic upgrade head`) which automatically manages schema changes and versioning.
