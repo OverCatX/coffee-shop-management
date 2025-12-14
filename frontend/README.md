@@ -48,7 +48,8 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 EOF
 ```
 
-**Important**: 
+**Important**:
+
 - Environment variables must start with `NEXT_PUBLIC_` to be accessible in the browser
 - The frontend connects directly to the backend API. Make sure the backend is running before starting the frontend
 - Restart the dev server after changing `.env.local` files
@@ -81,7 +82,6 @@ frontend/
 │   │   ├── api/          # API client functions (connects to backend)
 │   │   └── hooks/        # Custom React hooks
 │   └── types/            # TypeScript type definitions
-├── dev-mocks/            # Mock data (for reference only)
 └── public/               # Static assets
 ```
 
@@ -100,6 +100,7 @@ NEXT_PUBLIC_API_URL=http://your-backend-url/api/v1
 ### Running the Full Stack
 
 1. **Start Backend** (in `backend/` directory):
+
    ```bash
    cd backend
    source venv/bin/activate
@@ -107,6 +108,7 @@ NEXT_PUBLIC_API_URL=http://your-backend-url/api/v1
    ```
 
 2. **Start Frontend** (in `frontend/` directory):
+
    ```bash
    npm run dev
    ```
@@ -125,7 +127,7 @@ npm start
 
 ## 📝 Notes
 
-- **Mock Data**: Mock data has been moved to `dev-mocks/` folder for reference. The frontend now uses the real backend API by default.
+- **Backend API**: The frontend connects directly to the backend API. Make sure the backend is running before starting the frontend.
 - **Database Seeding**: To populate the backend with sample data, run `python scripts/seed_mock_data.py` in the backend directory.
 - **CORS**: The backend is configured to allow requests from `localhost:3000` by default.
 

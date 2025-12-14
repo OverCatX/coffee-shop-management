@@ -1,6 +1,6 @@
 # Coffee Shop Management System
 
-> Coffee Shop Management System (POS) is a comprehensive Point of Sale and management system designed for coffee shops. It provides a complete solution for managing orders, inventory, menu items, employees, customers, and business operations.
+Coffee Shop Management System (POS) is a comprehensive Point of Sale and management system designed for coffee shops. It provides a complete solution for managing orders, inventory, menu items, employees, customers, and business operations.
 
 ## 1. Project Overview & Features
 
@@ -57,15 +57,52 @@ This project demonstrates advanced **database design and management techniques**
 
    ```bash
    cd backend
-   python3 -m venv venv && source venv/bin/activate
+   python3 -m venv venv
+   source venv/bin/activate
    pip install -r requirements.txt
    createdb coffee_shop_db
    ```
 
 3. **Configure Environment:**
-   Create `.env` file in `backend/` with database credentials and settings (see [Setup Guide](docs/setup.md) for details)
+
+   Create `.env` file in `backend/` directory:
+
+   ```bash
+   # Required: Database credentials
+   DB_USER=postgres
+   DB_PASSWORD=yourpassword
+   DB_NAME=coffee_shop_db
+
+   # Optional: Database host and port (defaults: localhost, 5432)
+   DB_HOST=localhost
+   DB_PORT=5432
+
+   # Optional: Security key (recommended to change in production)
+   SECRET_KEY=your-secret-key-change-in-production
+   ```
+
+   **Note:** You can also use `DATABASE_URL` instead of individual `DB_*` variables:
+
+   ```bash
+   DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/coffee_shop_db
+   ```
+
+   See [Setup Guide](docs/setup.md) for detailed configuration.
 
 4. **Database Setup:**
+
+   **Option A: Use exported demo seed data (Recommended)**
+
+   If `backend/database/07_exported_seed_data.sql` exists:
+
+   ```bash
+   alembic upgrade head
+   psql -d coffee_shop_db -f backend/database/07_exported_seed_data.sql
+   ```
+
+   **Option B: Generate mock data**
+
+   If exported seed data is not available:
 
    ```bash
    alembic upgrade head
@@ -75,10 +112,13 @@ This project demonstrates advanced **database design and management techniques**
 5. **Start Backend:**
 
    ```bash
+   cd backend
+   source venv/bin/activate
    uvicorn app.main:app --reload
    ```
 
 6. **Frontend Setup:**
+
    ```bash
    cd frontend
    npm install
@@ -94,11 +134,13 @@ This project demonstrates advanced **database design and management techniques**
 
 ### Demo Credentials
 
-After seeding mock data:
+After seeding the database (using either Option A or Option B above):
 
 - **Manager**: `john.smith@coffeeshop.com` / `password123`
 - **Barista**: `sarah.j@coffeeshop.com` / `password123`
 - **Cashier**: `emma.w@coffeeshop.com` / `password123`
+
+> **Note:** If you used `07_exported_seed_data.sql`, credentials may vary. Check the exported file or use the mock data option to ensure these credentials work.
 
 > 📚 **For complete installation instructions and detailed configuration, see [Setup Guide](docs/setup.md)**
 
@@ -123,7 +165,8 @@ coffee-shop-management/
 │   │   ├── 03_indexes.sql    # Performance indexes
 │   │   ├── 04_seed_data.sql  # Sample seed data
 │   │   ├── 05_add_password_hash.sql # Password hash migration
-│   │   └── 06_seed_mock_data.sql # Mock data for development
+│   │   ├── 06_seed_mock_data.sql # Mock data for development
+│   │   └── 07_exported_seed_data.sql # Exported demo seed data (if available)
 │   └── scripts/               # Utility scripts
 │
 ├── frontend/                  # Next.js Frontend
@@ -220,16 +263,19 @@ CREATE INDEX idx_menu_item_category_available
 
 The `backend/database/` directory contains SQL scripts for manual database setup (alternative to Alembic migrations):
 
-| File                       | Description                                                                                                                                             |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `01_schema.sql`            | Complete DDL for creating all tables (employees, customers, menu_items, ingredients, menu_item_ingredients, inventory, orders, order_details, payments) |
-| `02_constraints.sql`       | Check constraints, foreign key constraints, and data validation rules                                                                                   |
-| `03_indexes.sql`           | Performance indexes for query optimization                                                                                                              |
-| `04_seed_data.sql`         | Sample seed data for initial testing                                                                                                                    |
-| `05_add_password_hash.sql` | Migration script to add password_hash column to employees table                                                                                         |
-| `06_seed_mock_data.sql`    | Mock data matching frontend dev-mocks (includes hashed passwords)                                                                                       |
+| File                        | Description                                                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `01_schema.sql`             | Complete DDL for creating all tables (employees, customers, menu_items, ingredients, menu_item_ingredients, inventory, orders, order_details, payments) |
+| `02_constraints.sql`        | Check constraints, foreign key constraints, and data validation rules                                                                                   |
+| `03_indexes.sql`            | Performance indexes for query optimization                                                                                                              |
+| `04_seed_data.sql`          | Sample seed data for initial testing                                                                                                                    |
+| `05_add_password_hash.sql`  | Migration script to add password_hash column to employees table                                                                                         |
+| `06_seed_mock_data.sql`     | Mock data matching frontend dev-mocks (includes hashed passwords)                                                                                       |
+| `07_exported_seed_data.sql` | Exported demo seed data from actual database (if available) - use this to get real demo data instead of mock data                                       |
 
 **Note:** These SQL scripts are provided for reference and manual setup. The recommended approach is to use Alembic migrations (`alembic upgrade head`) which automatically manages schema changes and versioning.
+
+**Using Exported Seed Data:** If `07_exported_seed_data.sql` is available in the repository, you can import it directly using `psql -d coffee_shop_db -f backend/database/07_exported_seed_data.sql` after running migrations. This gives you the actual demo data used in the project.
 
 ### Database Documentation Links
 

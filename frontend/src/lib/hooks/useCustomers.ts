@@ -73,7 +73,9 @@ export const useCreateCustomer = () => {
           error: 'Failed to create customer',
         }
       );
-      mutate('customers');
+      // Mutate all customer-related cache keys
+      mutate('customers-all', undefined, { revalidate: true });
+      mutate((key) => typeof key === 'string' && key.startsWith('customers'), undefined, { revalidate: true });
       return newCustomer;
     } catch (error) {
       throw error;
@@ -95,7 +97,9 @@ export const useUpdateCustomer = () => {
             error: 'Failed to update customer',
           }
         );
-        mutate('customers');
+        // Mutate all customer-related cache keys
+        mutate('customers-all', undefined, { revalidate: true });
+        mutate((key) => typeof key === 'string' && key.startsWith('customers'), undefined, { revalidate: true });
         return updated;
       } catch (error) {
         throw error;
@@ -118,7 +122,9 @@ export const useDeleteCustomer = () => {
           error: 'Failed to delete customer',
         }
       );
-      mutate('customers');
+      // Mutate all customer-related cache keys
+      mutate('customers-all', undefined, { revalidate: true });
+      mutate((key) => typeof key === 'string' && key.startsWith('customers'), undefined, { revalidate: true });
     } catch (error) {
       throw error;
     }

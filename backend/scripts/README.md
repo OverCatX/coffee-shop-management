@@ -45,6 +45,68 @@ After running the script, you can use these credentials to login:
 
 - The script will skip existing records (based on email/phone/name uniqueness)
 - Passwords are automatically hashed using bcrypt
-- The script creates role-specific records (Manager, Barista) automatically
 - All timestamps are set automatically by the database
+
+---
+
+## export_seed_data.py
+
+This script exports all data from your PostgreSQL database to a SQL seed file. Useful for creating seed data from your existing database.
+
+### Usage
+
+1. **Make sure you have activated your virtual environment:**
+   ```bash
+   cd backend
+   source venv/bin/activate
+   ```
+
+2. **Make sure your `.env` file is configured** with the database you want to export from
+
+3. **Run the export script:**
+   ```bash
+   python scripts/export_seed_data.py
+   ```
+
+4. **The script will create:** `backend/database/07_exported_seed_data.sql`
+
+### What it exports
+
+The script exports all data from these tables (in dependency order):
+- employees
+- customers
+- ingredients
+- menu_items
+- menu_item_ingredients
+- inventory
+- orders
+- order_details
+- payments
+
+### Using the exported file
+
+To use the exported seed data in another database:
+
+1. **Set up the schema first:**
+   ```bash
+   # Run migrations or SQL scripts
+   alembic upgrade head
+   # OR manually run:
+   # psql -d your_database -f database/01_schema.sql
+   # psql -d your_database -f database/02_constraints.sql
+   # psql -d your_database -f database/03_indexes.sql
+   ```
+
+2. **Import the seed data:**
+   ```bash
+   psql -d your_database -f database/07_exported_seed_data.sql
+   ```
+
+### Notes
+
+- Only exports non-deleted records (`is_deleted = FALSE`)
+- Preserves all relationships and foreign keys
+- Includes all columns including timestamps
+- Uses `ON CONFLICT DO NOTHING` to prevent errors if data already exists
+- The exported file can be shared with others to seed their databases
 

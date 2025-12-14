@@ -62,29 +62,36 @@ CREATE DATABASE coffee_shop_db;
 Create a `.env` file in the `backend/` directory:
 
 ```env
-# Database Configuration
-DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/coffee_shop_db
-DB_HOST=localhost
-DB_PORT=5432
+# Database Configuration (Required)
 DB_USER=postgres
 DB_PASSWORD=yourpassword
 DB_NAME=coffee_shop_db
 
-# Security
-SECRET_KEY=your-secret-key-change-in-production-use-random-string-here
+# Database Configuration (Optional - defaults: localhost, 5432)
+DB_HOST=localhost
+DB_PORT=5432
 
-# CORS Configuration
-CORS_ORIGINS=http://localhost:3000
-CORS_ALLOW_CREDENTIALS=true
-CORS_ALLOW_METHODS=*
-CORS_ALLOW_HEADERS=*
+# Alternative: Use full DATABASE_URL instead of DB_* variables above
+# DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/coffee_shop_db
+
+# Security (Optional - has default but recommended to change)
+SECRET_KEY=your-secret-key-change-in-production-use-random-string-here
 ```
 
 **Important Notes:**
 
+- **Required variables:** `DB_USER`, `DB_PASSWORD`, `DB_NAME` must be set
 - Replace `yourpassword` with your actual PostgreSQL password
-- Replace `your-secret-key-change-in-production-use-random-string-here` with a secure random string (you can generate one using Python: `python -c "import secrets; print(secrets.token_urlsafe(32))"`)
+- Replace `your-secret-key-change-in-production-use-random-string-here` with a secure random string (generate with: `python -c "import secrets; print(secrets.token_urlsafe(32))"`)
+- `DB_HOST` and `DB_PORT` are optional (defaults: `localhost`, `5432`)
+- `SECRET_KEY` is optional but recommended to change for production
+- You can use either `DATABASE_URL` OR individual `DB_*` variables (not both)
 - For production, use environment-specific values and never commit `.env` files
+
+**Other configuration options** (all have sensible defaults):
+
+- `DEBUG`, `LOG_LEVEL`, `HOST`, `PORT` - Application settings
+- `CORS_ORIGINS`, `CORS_ALLOW_CREDENTIALS`, `CORS_ALLOW_METHODS`, `CORS_ALLOW_HEADERS` - CORS settings (defaults work for development)
 
 ### Step 4: Database Migrations
 
@@ -107,6 +114,7 @@ python scripts/seed_mock_data.py
 ```
 
 This creates:
+
 - 4 employees (Manager, Baristas, Cashier roles) with hashed passwords
 - 4 customers with loyalty points
 - 10 menu items with recipes
@@ -121,6 +129,7 @@ uvicorn app.main:app --reload
 ```
 
 The backend API will be available at:
+
 - **API**: http://localhost:8000
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
@@ -149,6 +158,7 @@ npm run dev
 ```
 
 The frontend will be available at:
+
 - **Frontend**: http://localhost:3000
 
 ## Verification
@@ -156,12 +166,15 @@ The frontend will be available at:
 After completing the setup, verify everything is working:
 
 1. **Backend Health Check:**
+
    ```bash
    curl http://localhost:8000/health
    ```
+
    Should return: `{"status":"ok"}`
 
 2. **Frontend Access:**
+
    - Open http://localhost:3000 in your browser
    - You should see the login page
 
@@ -172,11 +185,11 @@ After completing the setup, verify everything is working:
 
 After seeding mock data, you can login with:
 
-| Role     | Email                        | Password    |
-| -------- | ---------------------------- | ----------- |
-| Manager  | john.smith@coffeeshop.com   | password123 |
-| Barista  | sarah.j@coffeeshop.com      | password123 |
-| Cashier  | emma.w@coffeeshop.com       | password123 |
+| Role    | Email                     | Password    |
+| ------- | ------------------------- | ----------- |
+| Manager | john.smith@coffeeshop.com | password123 |
+| Barista | sarah.j@coffeeshop.com    | password123 |
+| Cashier | emma.w@coffeeshop.com     | password123 |
 
 ## Common Issues
 
@@ -185,6 +198,7 @@ After seeding mock data, you can login with:
 **Error**: `could not connect to server`
 
 **Solutions:**
+
 1. Check PostgreSQL is running: `sudo systemctl status postgresql` (Linux) or check PostgreSQL service (Windows/macOS)
 2. Verify credentials in `.env` file
 3. Check if database exists: `psql -U postgres -l`
@@ -195,6 +209,7 @@ After seeding mock data, you can login with:
 **Error**: `Target database is not up to date`
 
 **Solutions:**
+
 1. Check current revision: `alembic current`
 2. View migration history: `alembic history`
 3. Apply migrations: `alembic upgrade head`
@@ -205,6 +220,7 @@ After seeding mock data, you can login with:
 **Error**: `ModuleNotFoundError: No module named 'fastapi'`
 
 **Solutions:**
+
 1. Ensure virtual environment is activated: `source venv/bin/activate`
 2. Install dependencies: `pip install -r requirements.txt`
 3. Verify installation: `pip list | grep fastapi`
@@ -214,6 +230,7 @@ After seeding mock data, you can login with:
 **Error**: `Unable to connect to server` or CORS errors
 
 **Solutions:**
+
 1. Verify backend is running: `curl http://localhost:8000/health`
 2. Check `NEXT_PUBLIC_API_URL` in `.env.local` matches backend URL
 3. Verify CORS configuration in backend `.env` file
@@ -224,6 +241,7 @@ After seeding mock data, you can login with:
 If you encounter build errors with Python 3.13:
 
 1. **Recommended**: Use Python 3.11 or 3.12
+
    ```bash
    python3.11 -m venv venv
    # or
@@ -237,11 +255,13 @@ If you encounter build errors with Python 3.13:
 After successful installation:
 
 1. **Explore the System:**
+
    - Login as Manager to see the dashboard
    - Login as Cashier to use the POS system
    - Login as Barista to view pending orders
 
 2. **Read Documentation:**
+
    - [Database Documentation](database/) - Learn about database design and techniques
    - [API Documentation](api.md) - Understand the RESTful API
    - [Troubleshooting](troubleshooting.md) - Common issues and solutions
